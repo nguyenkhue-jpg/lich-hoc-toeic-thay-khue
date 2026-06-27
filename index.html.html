@@ -1,0 +1,1019 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Quản lý lịch học – TOEIC Thầy Khuê</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;font-family:Arial,sans-serif}
+:root{
+  --starter:#92680A;--starter-bg:#FFFBEB;--starter-border:#F5D060;
+  --basic:#5B19A0;--basic-bg:#F5F0FF;--basic-border:#C4A8F0;
+  --complete:#991B1B;--complete-bg:#FFF1F1;--complete-border:#F4A0A0;
+  --other:#166040;--other-bg:#F0FFF8;--other-border:#86EFCC;
+  --phatam:#0369A1;--phatam-bg:#E0F2FE;--phatam-border:#7DD3FC;
+  --giaotiep:#9A3412;--giaotiep-bg:#FFF7ED;--giaotiep-border:#FED7AA;
+  --preielts:#6D28D9;--preielts-bg:#F5F3FF;--preielts-border:#DDD6FE;
+  --ielts:#0F766E;--ielts-bg:#F0FDFA;--ielts-border:#99F6E4;
+  --accent:#1D6AE5;--accent-bg:#EBF2FF;
+  --text:#1a1a1a;--text2:#555;--text3:#888;
+  --border:#e0e0e0;--border2:#ccc;
+  --bg:#f5f5f5;--card:#fff;
+  --green:#16a34a;--red:#dc2626;--yellow:#ca8a04;
+}
+body{background:var(--bg);color:var(--text);font-size:15px;min-height:100vh}
+
+/* TOPBAR */
+.topbar{background:#1B3350;padding:10px 20px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;box-shadow:0 2px 8px rgba(0,0,0,.2)}
+.brand{color:#F5C842;font-size:16px;font-weight:700;letter-spacing:.3px}
+.brand span{color:#fff;font-weight:400;font-size:13px;margin-left:8px;opacity:.8}
+.sync-area{display:flex;align-items:center;gap:8px}
+.sync-dot{width:9px;height:9px;border-radius:50%;background:#22c55e;display:inline-block;flex-shrink:0}
+.sync-txt{font-size:12px;color:rgba(255,255,255,.7)}
+.btn-sync{padding:5px 12px;background:rgba(255,255,255,.15);color:#fff;border:1px solid rgba(255,255,255,.3);border-radius:20px;font-size:12px;cursor:pointer;transition:all .15s}
+.btn-sync:hover{background:rgba(255,255,255,.25)}
+
+/* TABS */
+.tabs-wrap{background:#fff;border-bottom:1px solid var(--border);padding:0 20px;position:sticky;top:52px;z-index:99}
+.tabs{display:flex;gap:0}
+.tab{padding:12px 20px;font-size:14px;font-weight:600;cursor:pointer;color:var(--text3);border-bottom:3px solid transparent;transition:all .15s;white-space:nowrap}
+.tab.active{color:var(--accent);border-bottom-color:var(--accent)}
+.tab:hover:not(.active){color:var(--text)}
+
+/* MAIN */
+.main{max-width:900px;margin:0 auto;padding:20px}
+.panel{display:none}.panel.active{display:block}
+
+/* FORM */
+.form-card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:24px;margin-bottom:16px}
+.form-title{font-size:17px;font-weight:700;margin-bottom:20px;color:var(--text)}
+.sec-label{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--text3);margin-bottom:8px;margin-top:16px}
+.form-grid{display:grid;gap:12px;margin-bottom:4px}
+.form-grid.g2{grid-template-columns:1fr 1fr}
+.form-grid.g3{grid-template-columns:1fr 1fr 1fr}
+.form-grid.g1{grid-template-columns:1fr}
+.fld label{display:block;font-size:12px;font-weight:700;color:var(--text2);margin-bottom:5px}
+.fld input,.fld select{width:100%;height:40px;padding:0 12px;border:1px solid var(--border2);border-radius:8px;font-size:14px;color:var(--text);background:#fff;outline:none;transition:border .15s;font-family:Arial}
+.fld input:focus,.fld select:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-bg)}
+
+/* LOAI PICKER */
+.loai-grid{display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:8px;margin-bottom:4px}
+.loai-opt{padding:12px 6px;border:1px solid var(--border);border-radius:10px;text-align:center;cursor:pointer;transition:all .15s;user-select:none}
+.loai-opt:hover{border-color:var(--border2)}
+.loai-opt .icon{font-size:20px;display:block;margin-bottom:4px}
+.loai-opt .name{font-size:12px;font-weight:700}
+.loai-opt.sel-starter{background:var(--starter-bg);border-color:var(--starter-border);color:var(--starter)}
+.loai-opt.sel-basic{background:var(--basic-bg);border-color:var(--basic-border);color:var(--basic)}
+.loai-opt.sel-complete{background:var(--complete-bg);border-color:var(--complete-border);color:var(--complete)}
+.loai-opt.sel-other{background:var(--other-bg);border-color:var(--other-border);color:var(--other)}
+.loai-opt.sel-phatam{background:var(--phatam-bg);border-color:var(--phatam-border);color:var(--phatam)}
+.loai-opt.sel-giaotiep{background:var(--giaotiep-bg);border-color:var(--giaotiep-border);color:var(--giaotiep)}
+.loai-opt.sel-preielts{background:var(--preielts-bg);border-color:var(--preielts-border);color:var(--preielts)}
+.loai-opt.sel-ielts{background:var(--ielts-bg);border-color:var(--ielts-border);color:var(--ielts)}
+
+/* DAY PICKER */
+.day-row{display:flex;gap:7px;margin-bottom:4px}
+.day-btn{width:42px;height:42px;border-radius:50%;border:1px solid var(--border2);font-size:12px;font-weight:700;cursor:pointer;background:#fff;color:var(--text2);transition:all .15s;display:flex;align-items:center;justify-content:center;user-select:none;font-family:Arial}
+.day-btn.sel{background:var(--accent);color:#fff;border-color:var(--accent)}
+.day-btn:hover:not(.sel){background:var(--accent-bg);color:var(--accent)}
+
+/* BUTTONS */
+.row-btns{display:flex;gap:8px;justify-content:flex-end;margin-top:20px}
+.btn{padding:9px 20px;border:1px solid var(--border2);border-radius:8px;font-size:14px;font-weight:600;cursor:pointer;background:#fff;color:var(--text);transition:all .15s;display:inline-flex;align-items:center;gap:5px;font-family:Arial}
+.btn:hover{background:var(--bg)}
+.btn.prim{background:var(--accent);color:#fff;border-color:var(--accent)}
+.btn.prim:hover{background:#1558c0}
+.btn.sm{padding:5px 12px;font-size:12px}
+.btn.del{background:#FEF2F2;color:var(--red);border-color:#FECACA}
+.btn.del:hover{background:#FEE2E2}
+.btn.success{background:#F0FDF4;color:var(--green);border-color:#BBF7D0}
+
+/* LOP CARDS */
+.lop-wrap{margin-bottom:10px;border-radius:12px;overflow:hidden;box-shadow:0 1px 4px rgba(0,0,0,.08)}
+.lop-head{display:flex;align-items:center;gap:12px;padding:14px 16px;cursor:pointer;transition:opacity .15s;border-bottom:none}
+.lop-head:hover{opacity:.9}
+.lop-head.starter{background:var(--starter-bg);border:1px solid var(--starter-border);border-bottom:none}
+.lop-head.basic{background:var(--basic-bg);border:1px solid var(--basic-border);border-bottom:none}
+.lop-head.complete{background:var(--complete-bg);border:1px solid var(--complete-border);border-bottom:none}
+.lop-head.other{background:var(--other-bg);border:1px solid var(--other-border);border-bottom:none}
+.lop-head.phatam{background:var(--phatam-bg);border:1px solid var(--phatam-border);border-bottom:none}
+.lop-head.giaotiep{background:var(--giaotiep-bg);border:1px solid var(--giaotiep-border);border-bottom:none}
+.lop-head.preielts{background:var(--preielts-bg);border:1px solid var(--preielts-border);border-bottom:none}
+.lop-head.ielts{background:var(--ielts-bg);border:1px solid var(--ielts-border);border-bottom:none}
+.lop-head.collapsed{border-radius:12px;border-bottom:1px solid}
+.lop-head.collapsed.starter{border-color:var(--starter-border)}
+.lop-head.collapsed.basic{border-color:var(--basic-border)}
+.lop-head.collapsed.complete{border-color:var(--complete-border)}
+.lop-head.collapsed.other{border-color:var(--other-border)}
+.lop-head.collapsed.phatam{border-color:var(--phatam-border)}
+.lop-head.collapsed.giaotiep{border-color:var(--giaotiep-border)}
+.lop-head.collapsed.preielts{border-color:var(--preielts-border)}
+.lop-head.collapsed.ielts{border-color:var(--ielts-border)}
+.class-icon{width:40px;height:40px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0}
+.class-icon.starter{background:#F5D060}
+.class-icon.basic{background:#C4A8F0}
+.class-icon.complete{background:#F4A0A0}
+.class-icon.other{background:#86EFCC}
+.class-icon.phatam{background:#7DD3FC}
+.class-icon.giaotiep{background:#FED7AA}
+.class-icon.preielts{background:#DDD6FE}
+.class-icon.ielts{background:#99F6E4}
+.lop-info{flex:1;min-width:0}
+.lop-name{font-size:15px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.lop-name.starter{color:var(--starter)}.lop-name.basic{color:var(--basic)}.lop-name.complete{color:var(--complete)}.lop-name.other{color:var(--other)}
+.lop-name.phatam{color:var(--phatam)}.lop-name.giaotiep{color:var(--giaotiep)}.lop-name.preielts{color:var(--preielts)}.lop-name.ielts{color:var(--ielts)}
+.lop-sub{font-size:12px;color:var(--text3);margin-top:2px}
+.lop-stats{display:flex;gap:12px;align-items:center;flex-shrink:0}
+.mini-stat{text-align:center;min-width:36px}
+.mini-num{font-size:17px;font-weight:700}
+.mini-num.starter{color:var(--starter)}.mini-num.basic{color:var(--basic)}.mini-num.complete{color:var(--complete)}.mini-num.other{color:var(--other)}
+.mini-num.phatam{color:var(--phatam)}.mini-num.giaotiep{color:var(--giaotiep)}.mini-num.preielts{color:var(--preielts)}.mini-num.ielts{color:var(--ielts)}
+.mini-lbl{font-size:10px;color:var(--text3)}
+.divv{width:1px;height:32px;background:rgba(0,0,0,.1)}
+.chevron{font-size:16px;color:var(--text3);margin-left:4px;transition:transform .2s}
+.chevron.open{transform:rotate(180deg)}
+
+.lop-body{border:1px solid;border-top:none;border-radius:0 0 12px 12px;background:#fff;display:none}
+.lop-body.open{display:block}
+.lop-body.starter{border-color:var(--starter-border)}
+.lop-body.basic{border-color:var(--basic-border)}
+.lop-body.complete{border-color:var(--complete-border)}
+.lop-body.other{border-color:var(--other-border)}
+.lop-body.phatam{border-color:var(--phatam-border)}
+.lop-body.giaotiep{border-color:var(--giaotiep-border)}
+.lop-body.preielts{border-color:var(--preielts-border)}
+.lop-body.ielts{border-color:var(--ielts-border)}
+
+.progress-wrap{padding:10px 16px 12px;border-bottom:1px solid var(--border)}
+.progress-track{height:6px;border-radius:3px;background:#f0f0f0;overflow:hidden;margin-top:6px}
+.progress-fill{height:100%;border-radius:3px;transition:width .4s}
+.progress-fill.starter{background:linear-gradient(90deg,#B8860B,#F5D060)}
+.progress-fill.basic{background:linear-gradient(90deg,#6B21A8,#C4A8F0)}
+.progress-fill.complete{background:linear-gradient(90deg,#B91C1C,#F4A0A0)}
+.progress-fill.other{background:linear-gradient(90deg,#1E6B4A,#86EFCC)}
+.progress-fill.phatam{background:linear-gradient(90deg,#0369A1,#7DD3FC)}
+.progress-fill.giaotiep{background:linear-gradient(90deg,#9A3412,#FED7AA)}
+.progress-fill.preielts{background:linear-gradient(90deg,#6D28D9,#DDD6FE)}
+.progress-fill.ielts{background:linear-gradient(90deg,#0F766E,#99F6E4)}
+.progress-meta{display:flex;justify-content:space-between;font-size:11px;color:var(--text3);margin-top:4px}
+
+.buoi-scroll{max-height:360px;overflow-y:auto}
+.buoi-item{display:flex;align-items:center;gap:8px;padding:8px 16px;border-bottom:1px solid #f5f5f5;transition:background .1s;font-size:14px}
+.buoi-item:last-child{border-bottom:none}
+.buoi-item:hover{background:#fafafa}
+.buoi-num{width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;flex-shrink:0;color:#fff}
+.buoi-num.starter{background:var(--starter)}.buoi-num.basic{background:var(--basic)}.buoi-num.complete{background:var(--complete)}.buoi-num.other{background:var(--other)}
+.buoi-num.phatam{background:var(--phatam)}.buoi-num.giaotiep{background:var(--giaotiep)}.buoi-num.preielts{background:var(--preielts)}.buoi-num.ielts{background:var(--ielts)}
+.buoi-num.done{background:#e5e7eb;color:var(--text3);font-size:13px}
+.buoi-num.absent{background:#fee2e2;color:var(--red)}
+.buoi-thu{font-size:12px;font-weight:700;color:var(--text2);width:22px;flex-shrink:0}
+.buoi-date{flex:1;font-size:14px;font-weight:600}
+.buoi-item.vang .buoi-date{text-decoration:line-through;color:var(--text3)}
+.buoi-gio{font-size:12px;color:var(--text3);width:86px;flex-shrink:0}
+.badge{font-size:10px;padding:2px 8px;border-radius:6px;font-weight:700;flex-shrink:0}
+.badge.today-starter{background:#F5D060;color:var(--starter)}
+.badge.today-basic{background:#C4A8F0;color:var(--basic)}
+.badge.today-complete{background:#F4A0A0;color:var(--complete)}
+.badge.today-other{background:#86EFCC;color:var(--other)}
+.badge.today-phatam{background:#7DD3FC;color:var(--phatam)}
+.badge.today-giaotiep{background:#FED7AA;color:var(--giaotiep)}
+.badge.today-preielts{background:#DDD6FE;color:var(--preielts)}
+.badge.today-ielts{background:#99F6E4;color:var(--ielts)}
+.badge.vang{background:#FEE2E2;color:var(--red)}
+.btn-vang{width:28px;height:28px;border:none;border-radius:50%;cursor:pointer;background:transparent;color:var(--text3);font-size:14px;display:flex;align-items:center;justify-content:center;transition:all .15s;flex-shrink:0}
+.btn-vang:hover{background:#FEE2E2;color:var(--red)}
+.buoi-item.vang .btn-vang{color:var(--green);background:#F0FDF4}
+.buoi-item.vang .btn-vang:hover{background:#DCFCE7}
+
+.lop-foot{padding:10px 16px;border-top:1px solid var(--border);display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.gv-tag{font-size:11px;padding:3px 10px;border-radius:20px;font-weight:700;margin-left:auto}
+.gv-tag.vy{background:#FEF9C3;color:#854D0E}
+.gv-tag.khue{background:#DBEAFE;color:#1E40AF}
+.gv-tag.nam{background:#DCFCE7;color:#166534}
+.gv-tag.other-gv{background:#F3F4F6;color:var(--text2)}
+.ghichu-txt{font-size:12px;color:var(--text3)}
+
+/* EMPTY */
+.empty-state{text-align:center;padding:60px 20px;color:var(--text3)}
+.empty-icon{font-size:48px;display:block;margin-bottom:12px;opacity:.4}
+.empty-title{font-size:17px;font-weight:700;color:var(--text2);margin-bottom:8px}
+.empty-desc{font-size:14px;line-height:1.7;margin-bottom:20px}
+
+/* CALENDAR */
+.cal-card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:20px}
+.cal-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px}
+.cal-month{font-size:17px;font-weight:700}
+.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;text-align:center}
+.cal-dow{font-size:11px;font-weight:700;color:var(--text3);padding:4px 0}
+.cal-day{padding:5px 3px;border-radius:8px;min-height:46px;cursor:default}
+.cal-day-num{font-size:13px;margin-bottom:3px}
+.cal-dots{display:flex;gap:3px;justify-content:center;flex-wrap:wrap;min-height:9px}
+.cal-dot{width:8px;height:8px;border-radius:50%}
+.cal-ev-list{margin-top:16px;border-top:1px solid var(--border);padding-top:14px}
+.cal-ev-title{font-size:13px;font-weight:700;color:var(--text2);margin-bottom:8px}
+.cal-ev{display:flex;align-items:center;gap:10px;padding:8px 12px;border-radius:8px;border:1px solid var(--border);margin-bottom:5px;font-size:13px;background:#fff}
+.cal-ev-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0}
+.cal-ev-date{color:var(--text2);width:84px;font-weight:600;flex-shrink:0}
+.cal-ev-name{flex:1;font-weight:700}
+.cal-ev-buoi{font-size:11px;padding:2px 8px;border-radius:6px;font-weight:700;flex-shrink:0}
+.cal-ev-buoi.starter{background:var(--starter-bg);color:var(--starter)}
+.cal-ev-buoi.basic{background:var(--basic-bg);color:var(--basic)}
+.cal-ev-buoi.complete{background:var(--complete-bg);color:var(--complete)}
+.cal-ev-buoi.other{background:var(--other-bg);color:var(--other)}
+.cal-ev-gv{font-size:10px;padding:2px 8px;border-radius:10px;font-weight:700;flex-shrink:0}
+.cal-ev-gv.vy{background:#FEF9C3;color:#854D0E}
+.cal-ev-gv.khue{background:#DBEAFE;color:#1E40AF}
+.cal-ev-gv.nam{background:#DCFCE7;color:#166534}
+
+/* LỊCH TUẦN NGANG */
+.lichTuan-wrap{background:var(--card);border:1px solid var(--border);border-radius:12px;overflow:hidden}
+.lichTuan-toolbar{padding:14px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.lichTuan-title{font-size:15px;font-weight:700;margin-right:auto}
+.lop-filter{display:flex;gap:6px;flex-wrap:wrap}
+.lop-filter-btn{padding:5px 12px;border-radius:20px;border:1px solid var(--border2);font-size:12px;font-weight:600;cursor:pointer;transition:all .15s;background:#fff;color:var(--text2);font-family:Arial}
+.lop-filter-btn.on.starter{background:var(--starter-bg);border-color:var(--starter-border);color:var(--starter)}
+.lop-filter-btn.on.basic{background:var(--basic-bg);border-color:var(--basic-border);color:var(--basic)}
+.lop-filter-btn.on.complete{background:var(--complete-bg);border-color:var(--complete-border);color:var(--complete)}
+.lop-filter-btn.on.other{background:var(--other-bg);border-color:var(--other-border);color:var(--other)}
+.lop-filter-btn.on.phatam{background:var(--phatam-bg);border-color:var(--phatam-border);color:var(--phatam)}
+.lop-filter-btn.on.giaotiep{background:var(--giaotiep-bg);border-color:var(--giaotiep-border);color:var(--giaotiep)}
+.lop-filter-btn.on.preielts{background:var(--preielts-bg);border-color:var(--preielts-border);color:var(--preielts)}
+.lop-filter-btn.on.ielts{background:var(--ielts-bg);border-color:var(--ielts-border);color:var(--ielts)}
+.lop-filter-btn.off{opacity:.4}
+.week-nav{display:flex;align-items:center;gap:8px}
+.week-label{font-size:13px;font-weight:600;color:var(--text2);min-width:180px;text-align:center}
+.tbl-wrap{overflow-x:auto}
+.tbl-lich{width:100%;border-collapse:collapse;min-width:700px}
+.tbl-lich th{padding:10px 8px;font-size:13px;font-weight:700;text-align:center;background:#F8F9FA;border:1px solid var(--border);color:var(--text2)}
+.tbl-lich th.thu-hom-nay{background:#EBF2FF;color:var(--accent)}
+.tbl-lich td{padding:6px 6px;border:1px solid var(--border);vertical-align:top;min-width:110px;height:60px}
+.tbl-lich td.hom-nay{background:#FAFCFF}
+.cell-lop{border-radius:8px;padding:5px 8px;margin-bottom:3px;font-size:12px;line-height:1.4;cursor:default}
+.cell-lop.starter{background:var(--starter-bg);border-left:3px solid #F5D060;color:var(--starter)}
+.cell-lop.basic{background:var(--basic-bg);border-left:3px solid #C4A8F0;color:var(--basic)}
+.cell-lop.complete{background:var(--complete-bg);border-left:3px solid #F4A0A0;color:var(--complete)}
+.cell-lop.other{background:var(--other-bg);border-left:3px solid #86EFCC;color:var(--other)}
+.cell-lop.phatam{background:var(--phatam-bg);border-left:3px solid #7DD3FC;color:var(--phatam)}
+.cell-lop.giaotiep{background:var(--giaotiep-bg);border-left:3px solid #FED7AA;color:var(--giaotiep)}
+.cell-lop.preielts{background:var(--preielts-bg);border-left:3px solid #DDD6FE;color:var(--preielts)}
+.cell-lop.ielts{background:var(--ielts-bg);border-left:3px solid #99F6E4;color:var(--ielts)}
+.cell-lop-name{font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:120px}
+.cell-lop-info{font-size:10px;opacity:.8;margin-top:1px}
+.cell-buoi{display:inline-block;font-size:10px;font-weight:700;padding:1px 5px;border-radius:4px;margin-top:2px}
+.cell-buoi.starter{background:#F5D060;color:var(--starter)}
+.cell-buoi.basic{background:#C4A8F0;color:var(--basic)}
+.cell-buoi.complete{background:#F4A0A0;color:var(--complete)}
+.cell-buoi.other{background:#86EFCC;color:var(--other)}
+.cell-buoi.phatam{background:#7DD3FC;color:var(--phatam)}
+.cell-buoi.giaotiep{background:#FED7AA;color:var(--giaotiep)}
+.cell-buoi.preielts{background:#DDD6FE;color:var(--preielts)}
+.cell-buoi.ielts{background:#99F6E4;color:var(--ielts)}
+.td-label{font-size:11px;font-weight:700;color:var(--text3);padding:8px 10px;background:#F8F9FA;border:1px solid var(--border);white-space:nowrap;vertical-align:middle;text-align:center;min-width:60px}
+
+/* TOOLTIP */
+.tooltip-wrap{position:relative;display:block}
+.tooltip-box{display:none;position:fixed;z-index:999;background:#1a1a1a;color:#fff;padding:10px 14px;border-radius:8px;font-size:12px;line-height:1.6;max-width:280px;pointer-events:none;box-shadow:0 4px 16px rgba(0,0,0,.3);white-space:pre-line}
+.tooltip-box.show{display:block}
+.tooltip-title{font-weight:700;font-size:12px;margin-bottom:2px}
+.tooltip-nd{font-size:11px;opacity:.85}
+
+/* CHƯƠNG TRÌNH */
+.ct-loai-tabs{display:flex;gap:6px;margin-bottom:16px;flex-wrap:wrap}
+.ct-loai-btn{padding:7px 16px;border-radius:20px;border:1px solid var(--border2);font-size:13px;font-weight:700;cursor:pointer;background:#fff;transition:all .15s;font-family:Arial}
+.ct-loai-btn.active.starter{background:var(--starter-bg);border-color:var(--starter-border);color:var(--starter)}
+.ct-loai-btn.active.basic{background:var(--basic-bg);border-color:var(--basic-border);color:var(--basic)}
+.ct-loai-btn.active.complete{background:var(--complete-bg);border-color:var(--complete-border);color:var(--complete)}
+.ct-loai-btn.active.other{background:var(--other-bg);border-color:var(--other-border);color:var(--other)}
+.ct-loai-btn.active.phatam{background:var(--phatam-bg);border-color:var(--phatam-border);color:var(--phatam)}
+.ct-loai-btn.active.giaotiep{background:var(--giaotiep-bg);border-color:var(--giaotiep-border);color:var(--giaotiep)}
+.ct-loai-btn.active.preielts{background:var(--preielts-bg);border-color:var(--preielts-border);color:var(--preielts)}
+.ct-loai-btn.active.ielts{background:var(--ielts-bg);border-color:var(--ielts-border);color:var(--ielts)}
+.ct-table{width:100%;border-collapse:collapse;margin-bottom:14px}
+.ct-table th{padding:9px 12px;font-size:12px;font-weight:700;text-align:left;border:1px solid var(--border)}
+.ct-table th.th-buoi{width:52px;text-align:center;background:#1B3350;color:#F5C842}
+.ct-table th.th-tren{background:#276221;color:#fff;width:45%}
+.ct-table th.th-ve{background:#1a5276;color:#fff;width:45%}
+.ct-table td{padding:6px 8px;border:1px solid var(--border);vertical-align:top}
+.ct-table td.td-num{text-align:center;vertical-align:middle;background:var(--bg)}
+.ct-buoi-num{width:30px;height:30px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:#fff}
+.ct-buoi-num.starter{background:var(--starter)}.ct-buoi-num.basic{background:var(--basic)}.ct-buoi-num.complete{background:var(--complete)}.ct-buoi-num.other{background:var(--other)}
+.ct-buoi-num.phatam{background:var(--phatam)}.ct-buoi-num.giaotiep{background:var(--giaotiep)}.ct-buoi-num.preielts{background:var(--preielts)}.ct-buoi-num.ielts{background:var(--ielts)}
+.ct-textarea{width:100%;min-height:70px;padding:7px 9px;border:1px solid var(--border2);border-radius:6px;font-size:13px;font-family:Arial;color:var(--text);background:#fff;outline:none;resize:vertical;line-height:1.5}
+.ct-textarea:focus{border-color:var(--accent);box-shadow:0 0 0 2px var(--accent-bg)}
+.ct-del-btn{width:28px;height:28px;border:none;border-radius:50%;background:transparent;color:var(--text3);font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all .15s;margin:auto}
+.ct-del-btn:hover{background:#FEE2E2;color:var(--red)}
+.ct-empty{text-align:center;padding:24px;color:var(--text3);font-size:13px;background:var(--bg);border-radius:8px;border:1px dashed var(--border2)}
+.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:#1a1a1a;color:#fff;padding:10px 20px;border-radius:24px;font-size:13px;font-weight:600;z-index:9999;opacity:0;transition:opacity .3s;pointer-events:none}
+.toast.show{opacity:1}
+
+/* LOADING */
+.loading{text-align:center;padding:40px;color:var(--text3);font-size:14px}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="brand">TOEIC Thầy Khuê <span>— Quản lý lịch học</span></div>
+  <div class="sync-area">
+    <span class="sync-dot" id="sync-dot"></span>
+    <span class="sync-txt" id="sync-txt">Đang kết nối...</span>
+    <button class="btn-sync" onclick="syncNow()">↻ Đồng bộ</button>
+  </div>
+</div>
+
+<div class="tabs-wrap">
+  <div class="tabs">
+    <div class="tab active" id="tab-ds" onclick="switchTab('ds')">📋 Danh sách lớp</div>
+    <div class="tab" id="tab-them" onclick="switchTab('them')">➕ Thêm lớp</div>
+    <div class="tab" id="tab-tuan" onclick="switchTab('tuan')">📊 Lịch tuần</div>
+    <div class="tab" id="tab-cal" onclick="switchTab('cal')">📅 Lịch tháng</div>
+    <div class="tab" id="tab-ct" onclick="switchTab('ct')">📚 Chương trình</div>
+  </div>
+</div>
+
+<div class="main">
+  <!-- DANH SÁCH -->
+  <div id="panel-ds" class="panel active">
+    <div id="ds-loading" class="loading">⏳ Đang tải dữ liệu...</div>
+    <div id="ds-empty" class="empty-state" style="display:none">
+      <span class="empty-icon">🏫</span>
+      <div class="empty-title">Chưa có lớp nào</div>
+      <div class="empty-desc">Nhấn <strong>Thêm lớp</strong> để tạo lớp học đầu tiên.<br>App sẽ tự tính toàn bộ lịch các buổi học.</div>
+      <button class="btn prim" onclick="switchTab('them')">➕ Thêm lớp đầu tiên</button>
+    </div>
+    <div id="ds-list"></div>
+  </div>
+
+  <!-- THÊM LỚP -->
+  <div id="panel-them" class="panel">
+    <div class="form-card">
+      <div class="form-title">Tạo lớp học mới</div>
+
+      <div class="sec-label">Loại lớp</div>
+      <div class="loai-grid" style="grid-template-columns:repeat(4,1fr)">
+        <div class="loai-opt" id="opt-starter" onclick="selLoai('starter')">
+          <span class="icon">⭐</span><span class="name" style="color:var(--starter)">Starter</span>
+        </div>
+        <div class="loai-opt" id="opt-basic" onclick="selLoai('basic')">
+          <span class="icon">📘</span><span class="name" style="color:var(--basic)">Basic</span>
+        </div>
+        <div class="loai-opt sel-complete" id="opt-complete" onclick="selLoai('complete')">
+          <span class="icon">🎯</span><span class="name" style="color:var(--complete)">Complete</span>
+        </div>
+        <div class="loai-opt" id="opt-other" onclick="selLoai('other')">
+          <span class="icon">🌿</span><span class="name" style="color:var(--other)">Khác</span>
+        </div>
+        <div class="loai-opt" id="opt-phatam" onclick="selLoai('phatam')">
+          <span class="icon">🗣️</span><span class="name" style="color:var(--phatam)">Phát Âm IPA</span>
+        </div>
+        <div class="loai-opt" id="opt-giaotiep" onclick="selLoai('giaotiep')">
+          <span class="icon">💬</span><span class="name" style="color:var(--giaotiep)">Giao Tiếp</span>
+        </div>
+        <div class="loai-opt" id="opt-preielts" onclick="selLoai('preielts')">
+          <span class="icon">📗</span><span class="name" style="color:var(--preielts)">Pre-IELTS</span>
+        </div>
+        <div class="loai-opt" id="opt-ielts" onclick="selLoai('ielts')">
+          <span class="icon">🏆</span><span class="name" style="color:var(--ielts)">IELTS 6.5</span>
+        </div>
+      </div>
+
+      <div class="sec-label">Thông tin lớp</div>
+      <div class="form-grid g2">
+        <div class="fld"><label>Tên lớp</label><input id="f-ten" type="text" placeholder="Vd: T246 18h00 Thầy Khuê"></div>
+        <div class="fld"><label>Giáo viên</label>
+          <select id="f-gv">
+            <option value="Cô Vy">Cô Vy</option>
+            <option value="Thầy Khuê" selected>Thầy Khuê</option>
+            <option value="Thầy Nam">Thầy Nam</option>
+            <option value="Khác">Khác</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-grid g3">
+        <div class="fld"><label>Ngày khai giảng</label><input id="f-ngay" type="date"></div>
+        <div class="fld"><label>Giờ bắt đầu</label><input id="f-gio-bd" type="time" value="18:00"></div>
+        <div class="fld"><label>Giờ kết thúc</label><input id="f-gio-kt" type="time" value="19:30"></div>
+      </div>
+
+      <div class="sec-label">Thứ học trong tuần</div>
+      <div class="day-row" id="day-picker">
+        <div class="day-btn" data-d="0" onclick="toggleDay(this)">CN</div>
+        <div class="day-btn" data-d="1" onclick="toggleDay(this)">T2</div>
+        <div class="day-btn" data-d="2" onclick="toggleDay(this)">T3</div>
+        <div class="day-btn" data-d="3" onclick="toggleDay(this)">T4</div>
+        <div class="day-btn" data-d="4" onclick="toggleDay(this)">T5</div>
+        <div class="day-btn" data-d="5" onclick="toggleDay(this)">T6</div>
+        <div class="day-btn" data-d="6" onclick="toggleDay(this)">T7</div>
+      </div>
+
+      <div class="form-grid g2" style="margin-top:4px">
+        <div class="fld"><label>Tổng số buổi</label><input id="f-sobuoi" type="number" min="1" max="200" value="27"></div>
+        <div class="fld"><label>Ghi chú</label><input id="f-ghichu" type="text" placeholder="Vd: Lớp sáng CN, Cô Vy dạy"></div>
+      </div>
+
+      <div class="row-btns">
+        <button class="btn" onclick="switchTab('ds')">Hủy</button>
+        <button class="btn prim" onclick="themLop()">✓ Tạo lớp</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- LỊCH TUẦN -->
+  <div id="panel-tuan" class="panel">
+    <div class="lichTuan-wrap">
+      <div class="lichTuan-toolbar">
+        <span class="lichTuan-title">📊 Lịch tuần</span>
+        <div class="week-nav">
+          <button class="btn sm" onclick="prevWeek()">‹ Tuần trước</button>
+          <span class="week-label" id="week-label"></span>
+          <button class="btn sm" onclick="nextWeek()">Tuần sau ›</button>
+          <button class="btn sm" onclick="thisWeek()" style="background:var(--accent-bg);color:var(--accent);border-color:var(--accent)">Tuần này</button>
+        </div>
+      </div>
+      <div class="lichTuan-toolbar" style="border-top:none;padding-top:0">
+        <span style="font-size:12px;color:var(--text3);font-weight:600">Hiển thị:</span>
+        <div class="lop-filter" id="lop-filter"></div>
+        <button class="btn sm" onclick="filterAll(true)" style="margin-left:auto">Chọn tất cả</button>
+        <button class="btn sm" onclick="filterAll(false)">Bỏ tất cả</button>
+      </div>
+      <div class="tbl-wrap">
+        <table class="tbl-lich" id="tbl-tuan"></table>
+      </div>
+    </div>
+  </div>
+
+  <!-- CHƯƠNG TRÌNH -->
+  <div id="panel-ct" class="panel">
+    <div class="form-card">
+      <div class="form-title">📚 Cấu hình nội dung chương trình</div>
+      <div style="font-size:13px;color:var(--text3);margin-bottom:14px">Nhập nội dung từng buổi cho mỗi loại lớp. Khi tạo lớp mới, nội dung sẽ tự động gán vào từng buổi.</div>
+      <div class="ct-loai-tabs">
+        <button class="ct-loai-btn active starter" id="ctbtn-starter" onclick="switchCT('starter')">⭐ Starter</button>
+        <button class="ct-loai-btn basic" id="ctbtn-basic" onclick="switchCT('basic')">📘 Basic</button>
+        <button class="ct-loai-btn complete" id="ctbtn-complete" onclick="switchCT('complete')">🎯 Complete</button>
+        <button class="ct-loai-btn other" id="ctbtn-other" onclick="switchCT('other')">🌿 Khác</button>
+        <button class="ct-loai-btn phatam" id="ctbtn-phatam" onclick="switchCT('phatam')">🗣️ Phát Âm IPA</button>
+        <button class="ct-loai-btn giaotiep" id="ctbtn-giaotiep" onclick="switchCT('giaotiep')">💬 Giao Tiếp</button>
+        <button class="ct-loai-btn preielts" id="ctbtn-preielts" onclick="switchCT('preielts')">📗 Pre-IELTS</button>
+        <button class="ct-loai-btn ielts" id="ctbtn-ielts" onclick="switchCT('ielts')">🏆 IELTS 6.5</button>
+      </div>
+      <div id="ct-buoi-list"></div>
+      <div style="display:flex;gap:8px">
+        <button class="btn success" onclick="ctThemBuoi()">➕ Thêm buổi</button>
+        <button class="btn prim" onclick="ctLuu()">💾 Lưu chương trình</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- LỊCH THÁNG -->
+  <div id="panel-cal" class="panel">
+    <div class="cal-card">
+      <div class="cal-head">
+        <button class="btn sm" onclick="prevMonth()">‹ Tháng trước</button>
+        <span class="cal-month" id="cal-month-title"></span>
+        <button class="btn sm" onclick="nextMonth()">Tháng sau ›</button>
+      </div>
+      <div class="cal-grid" id="cal-grid"></div>
+      <div class="cal-ev-list">
+        <div class="cal-ev-title">Các buổi học trong tháng</div>
+        <div id="cal-events"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="tooltip-box" id="tooltip-box"><div class="tooltip-title" id="tooltip-title"></div><div class="tooltip-nd" id="tooltip-nd"></div></div>
+<div class="toast" id="toast"></div>
+
+<!-- FIREBASE -->
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getDatabase, ref, onValue, set, get } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyC5LDTac_n7lJ4h1tk_sSHBFtIQ2mGMPAI",
+  authDomain: "toeic-thay-khue.firebaseapp.com",
+  databaseURL: "https://toeic-thay-khue-default-rtdb.firebaseio.com",
+  projectId: "toeic-thay-khue",
+  storageBucket: "toeic-thay-khue.firebasestorage.app",
+  messagingSenderId: "490107473828",
+  appId: "1:490107473828:web:1634b65f3c54e97d307b31"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getDatabase(app);
+const lopRef = ref(db, 'lops');
+const ctRef = ref(db, 'chuongtrinh');
+
+const DAYS=['CN','T2','T3','T4','T5','T6','T7'];
+const MONTHS_VN=['Tháng 1','Tháng 2','Tháng 3','Tháng 4','Tháng 5','Tháng 6','Tháng 7','Tháng 8','Tháng 9','Tháng 10','Tháng 11','Tháng 12'];
+const LOAI_ICON={starter:'⭐',basic:'📘',complete:'🎯',other:'🌿',phatam:'🗣️',giaotiep:'💬',preielts:'📗',ielts:'🏆'};
+const COLOR_DOT={starter:'#B8860B',basic:'#6B21A8',complete:'#B91C1C',other:'#1E6B4A',phatam:'#0369A1',giaotiep:'#9A3412',preielts:'#6D28D9',ielts:'#0F766E'};
+const GV_CLASS={'Cô Vy':'vy','Thầy Khuê':'khue','Thầy Nam':'nam'};
+
+let lops=[], selDays=[], curLoai='complete', calView=new Date();
+let chuongTrinh={starter:[],basic:[],complete:[],other:[],phatam:[],giaotiep:[],preielts:[],ielts:[]};
+let curCT='starter';
+
+function setSyncStatus(s){
+  const dot=document.getElementById('sync-dot');
+  const txt=document.getElementById('sync-txt');
+  const colors={ok:'#22c55e',saving:'#F59E0B',loading:'#3B82F6',err:'#EF4444'};
+  const labels={ok:'Đã đồng bộ',saving:'Đang lưu...',loading:'Đang tải...',err:'Lỗi kết nối'};
+  dot.style.background=colors[s]||'#888';
+  txt.textContent=labels[s]||s;
+}
+
+function showToast(msg){
+  const t=document.getElementById('toast');
+  t.textContent=msg;t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'),2500);
+}
+
+// Lắng nghe realtime từ Firebase
+onValue(lopRef,(snapshot)=>{
+  const data=snapshot.val();
+  lops=data?Object.values(data):[];
+  setSyncStatus('ok');
+  document.getElementById('ds-loading').style.display='none';
+  renderDS();
+  if(document.getElementById('panel-cal').classList.contains('active'))renderCal();
+  if(document.getElementById('panel-tuan').classList.contains('active'))renderTuan();
+},(err)=>{
+  setSyncStatus('err');
+  document.getElementById('ds-loading').textContent='❌ Không thể kết nối Firebase. Kiểm tra lại Rules.';
+});
+
+async function saveData(){
+  setSyncStatus('saving');
+  try{
+    const obj={};
+    lops.forEach(l=>{obj[l.id]=l;});
+    await set(lopRef,obj);
+    setSyncStatus('ok');
+    showToast('✅ Đã lưu!');
+  }catch(e){
+    setSyncStatus('err');
+    showToast('❌ Lỗi lưu dữ liệu: '+e.message);
+  }
+}
+
+window.syncNow=async function(){
+  setSyncStatus('loading');
+  try{
+    const snap=await get(lopRef);
+    const data=snap.val();
+    lops=data?Object.values(data):[];
+    setSyncStatus('ok');
+    showToast('✅ Đã đồng bộ!');
+    renderDS();
+  }catch(e){setSyncStatus('err');}
+};
+
+// Load chương trình từ Firebase
+onValue(ctRef,(snap)=>{
+  const d=snap.val();
+  if(d){chuongTrinh={starter:d.starter||[],basic:d.basic||[],complete:d.complete||[],other:d.other||[],phatam:d.phatam||[],giaotiep:d.giaotiep||[],preielts:d.preielts||[],ielts:d.ielts||[]};}
+  renderCTList();
+});
+
+let tuanView=new Date(), lopFilter={};
+
+window.switchTab=function(id){
+  ['ds','them','tuan','cal','ct'].forEach(t=>{
+    document.getElementById('tab-'+t).classList.toggle('active',t===id);
+    document.getElementById('panel-'+t).classList.toggle('active',t===id);
+  });
+  if(id==='cal')renderCal();
+  if(id==='tuan')renderTuan();
+  if(id==='ct')renderCTList();
+};
+
+window.selLoai=function(l){
+  curLoai=l;
+  ['starter','basic','complete','other','phatam','giaotiep','preielts','ielts'].forEach(x=>{
+    document.getElementById('opt-'+x).className='loai-opt'+(x===l?' sel-'+x:'');
+  });
+};
+
+window.toggleDay=function(el){
+  const d=parseInt(el.dataset.d);
+  if(selDays.includes(d)){selDays=selDays.filter(x=>x!==d);el.classList.remove('sel');}
+  else{selDays.push(d);el.classList.add('sel');}
+};
+
+function tinhNgay(start,thuHoc,so){
+  const res=[]; let cur=new Date(start); cur.setHours(0,0,0,0);
+  const sorted=[...thuHoc].sort((a,b)=>a-b);
+  let cnt=0,safe=0;
+  while(cnt<so&&safe<2000){
+    if(sorted.includes(cur.getDay())){res.push(new Date(cur));cnt++;}
+    cur.setDate(cur.getDate()+1);safe++;
+  }
+  return res;
+}
+
+window.themLop=async function(){
+  const ten=document.getElementById('f-ten').value.trim();
+  const ngay=document.getElementById('f-ngay').value;
+  const gioBD=document.getElementById('f-gio-bd').value;
+  const gioKT=document.getElementById('f-gio-kt').value;
+  const sobuoi=parseInt(document.getElementById('f-sobuoi').value)||0;
+  const gv=document.getElementById('f-gv').value;
+  const ghichu=document.getElementById('f-ghichu').value.trim();
+  if(!ten){alert('Vui lòng nhập tên lớp');return;}
+  if(!ngay){alert('Vui lòng chọn ngày khai giảng');return;}
+  if(selDays.length===0){alert('Vui lòng chọn ít nhất 1 thứ học');return;}
+  if(sobuoi<1){alert('Số buổi phải lớn hơn 0');return;}
+  const ngayHoc=tinhNgay(ngay,selDays,sobuoi);
+  const template=chuongTrinh[curLoai]||[];
+  const id='lop_'+Date.now();
+  lops.push({id,ten,ngay,gioBD,gioKT,sobuoi,thuHoc:[...selDays],loai:curLoai,gv,ghichu,
+    ngayHoc:ngayHoc.map((d,i)=>{
+      const t=template[i];
+      const tren=t?(typeof t==='object'?t.tren||'':t):'';
+      const ve=t&&typeof t==='object'?t.ve||'':'';
+      return{date:d.toISOString(),vang:false,nd:tren,ve};
+    }),open:true});
+  await saveData();
+  document.getElementById('f-ten').value='';
+  document.getElementById('f-ngay').value='';
+  document.getElementById('f-ghichu').value='';
+  document.getElementById('f-sobuoi').value='27';
+  selDays=[];document.querySelectorAll('.day-btn').forEach(b=>b.classList.remove('sel'));
+  switchTab('ds');
+};
+
+function renderDS(){
+  const el=document.getElementById('ds-list');
+  const em=document.getElementById('ds-empty');
+  if(lops.length===0){el.innerHTML='';em.style.display='block';return;}
+  em.style.display='none';
+  el.innerHTML=lops.map(lopHTML).join('');
+}
+
+function lopHTML(lop){
+  const today=new Date();today.setHours(0,0,0,0);
+  const valid=lop.ngayHoc.filter(b=>!b.vang);
+  const done=valid.filter(b=>{const d=new Date(b.date);d.setHours(0,0,0,0);return d<today;}).length;
+  const remain=valid.filter(b=>{const d=new Date(b.date);d.setHours(0,0,0,0);return d>=today;}).length;
+  const absent=lop.ngayHoc.filter(b=>b.vang).length;
+  const pct=lop.sobuoi>0?Math.round(done/lop.sobuoi*100):0;
+  const thuStr=lop.thuHoc.map(d=>DAYS[d]).join(' · ');
+  const lastValid=valid[valid.length-1];
+  const ktStr=lastValid?fmtDate(new Date(lastValid.date)):'—';
+  const gvCls=GV_CLASS[lop.gv]||'other-gv';
+
+  const buoiRows=lop.ngayHoc.map((b,i)=>{
+    const d=new Date(b.date);d.setHours(0,0,0,0);
+    const isToday=d.getTime()===today.getTime();
+    const isPast=d<today&&!b.vang;
+    const stt=lop.ngayHoc.slice(0,i+1).filter(x=>!x.vang).length;
+    let numClass=lop.loai;
+    if(b.vang)numClass='absent';
+    else if(isPast)numClass='done';
+    return `<div class="buoi-item${b.vang?' vang':''}${isToday?' ' :''}">
+      <div class="buoi-num ${numClass}">${b.vang?'✕':isPast?'✓':stt}</div>
+      <span class="buoi-thu">${DAYS[d.getDay()]}</span>
+      <span class="buoi-date">${fmtDate(d)}</span>
+      <span class="buoi-gio">${lop.gioBD}–${lop.gioKT}</span>
+      ${b.nd?`<span style="font-size:11px;color:var(--text3);flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:200px">📖 ${b.nd}</span>`:'<span style="flex:1"></span>'}
+      ${isToday&&!b.vang?`<span class="badge today-${lop.loai}">Hôm nay</span>`:''}
+      ${b.vang?`<span class="badge vang">Vắng</span>`:''}
+      <button class="btn-vang" onclick="toggleVang('${lop.id}',${i})" title="${b.vang?'Hoàn tác':'Đánh dấu vắng'}">
+        ${b.vang?'↺':'✕'}
+      </button>
+    </div>`;
+  }).join('');
+
+  const isOpen=lop.open!==false;
+  return `<div class="lop-wrap">
+    <div class="lop-head ${lop.loai}${!isOpen?' collapsed':''}" onclick="toggleLop('${lop.id}')">
+      <div class="class-icon ${lop.loai}">${LOAI_ICON[lop.loai]}</div>
+      <div class="lop-info">
+        <div class="lop-name ${lop.loai}">${lop.ten}</div>
+        <div class="lop-sub">${thuStr} · ${lop.gioBD}–${lop.gioKT} · ${lop.gv} · Kết thúc: ${ktStr}</div>
+      </div>
+      <div class="lop-stats">
+        <div class="mini-stat"><div class="mini-num ${lop.loai}">${done}</div><div class="mini-lbl">Đã học</div></div>
+        <div class="divv"></div>
+        <div class="mini-stat"><div class="mini-num ${lop.loai}">${remain}</div><div class="mini-lbl">Còn lại</div></div>
+        ${absent>0?`<div class="divv"></div><div class="mini-stat"><div class="mini-num" style="color:var(--red)">${absent}</div><div class="mini-lbl">Vắng</div></div>`:''}
+        <span class="chevron${isOpen?' open':''}">▼</span>
+      </div>
+    </div>
+    <div class="lop-body ${lop.loai}${isOpen?' open':''}">
+      <div class="progress-wrap">
+        <div class="progress-track"><div class="progress-fill ${lop.loai}" style="width:${pct}%"></div></div>
+        <div class="progress-meta"><span>${done} / ${lop.sobuoi} buổi đã học</span><span>${pct}% hoàn thành</span></div>
+      </div>
+      <div class="buoi-scroll">${buoiRows}</div>
+      <div class="lop-foot">
+        <button class="btn sm del" onclick="xoaLop('${lop.id}')">🗑 Xóa lớp</button>
+        <button class="btn sm success" onclick="buBuoi('${lop.id}')">➕ Buổi bù</button>
+        <span class="gv-tag ${gvCls}">${lop.gv}</span>
+        ${lop.ghichu?`<span class="ghichu-txt">📝 ${lop.ghichu}</span>`:''}
+      </div>
+    </div>
+  </div>`;
+}
+
+window.toggleLop=async function(id){
+  const l=lops.find(x=>x.id===id);
+  if(l){l.open=l.open===false?true:false;await saveData();renderDS();}
+};
+
+window.toggleVang=async function(lid,idx){
+  const lop=lops.find(l=>l.id===lid);if(!lop)return;
+  lop.ngayHoc[idx].vang=!lop.ngayHoc[idx].vang;
+  if(lop.ngayHoc[idx].vang){
+    const last=new Date(lop.ngayHoc[lop.ngayHoc.length-1].date);
+    let nxt=new Date(last);nxt.setDate(nxt.getDate()+1);
+    let s=0;while(!lop.thuHoc.includes(nxt.getDay())&&s<30){nxt.setDate(nxt.getDate()+1);s++;}
+    lop.ngayHoc.push({date:nxt.toISOString(),vang:false});
+    showToast('📌 Đánh dấu vắng — Buổi tự dôi ra cuối!');
+  } else {
+    const last=lop.ngayHoc[lop.ngayHoc.length-1];
+    const ld=new Date(last.date);ld.setHours(0,0,0,0);
+    const today=new Date();today.setHours(0,0,0,0);
+    if(!last.vang&&ld>today)lop.ngayHoc.pop();
+    showToast('↺ Đã hoàn tác vắng');
+  }
+  await saveData();renderDS();
+};
+
+window.xoaLop=async function(id){
+  if(!confirm('Xóa lớp này? Không thể hoàn tác.'))return;
+  lops=lops.filter(l=>l.id!==id);
+  await saveData();renderDS();showToast('🗑 Đã xóa lớp');
+};
+
+window.buBuoi=async function(lid){
+  const lop=lops.find(l=>l.id===lid);if(!lop)return;
+  const last=new Date(lop.ngayHoc[lop.ngayHoc.length-1].date);
+  let nxt=new Date(last);nxt.setDate(nxt.getDate()+1);
+  let s=0;while(!lop.thuHoc.includes(nxt.getDay())&&s<30){nxt.setDate(nxt.getDate()+1);s++;}
+  lop.ngayHoc.push({date:nxt.toISOString(),vang:false});
+  await saveData();renderDS();showToast('➕ Đã thêm buổi bù!');
+};
+
+function fmtDate(d){return`${String(d.getDate()).padStart(2,'0')}/${String(d.getMonth()+1).padStart(2,'0')}/${d.getFullYear()}`;}
+
+function renderCal(){
+  const y=calView.getFullYear(),m=calView.getMonth();
+  document.getElementById('cal-month-title').textContent=`${MONTHS_VN[m]} ${y}`;
+  const first=new Date(y,m,1),last=new Date(y,m+1,0);
+  const today=new Date();today.setHours(0,0,0,0);
+  let html=DAYS.map(d=>`<div class="cal-dow">${d}</div>`).join('');
+  for(let i=0;i<first.getDay();i++)html+='<div></div>';
+  for(let day=1;day<=last.getDate();day++){
+    const cur=new Date(y,m,day);cur.setHours(0,0,0,0);
+    const isT=cur.getTime()===today.getTime();
+    const evLops=lops.filter(lop=>lop.ngayHoc.some(b=>{const d=new Date(b.date);d.setHours(0,0,0,0);return d.getTime()===cur.getTime()&&!b.vang;}));
+    const dots=evLops.map(l=>`<div class="cal-dot" style="background:${COLOR_DOT[l.loai]}"></div>`).join('');
+    html+=`<div class="cal-day" style="${isT?'background:#EBF2FF;':''}">
+      <div class="cal-day-num" style="${isT?'color:var(--accent);font-weight:700;':evLops.length?'font-weight:700;':''}">${day}</div>
+      <div class="cal-dots">${dots}</div>
+    </div>`;
+  }
+  document.getElementById('cal-grid').innerHTML=html;
+  const evs=[];
+  lops.forEach(lop=>lop.ngayHoc.forEach((b,i)=>{
+    const d=new Date(b.date);
+    if(d.getFullYear()===y&&d.getMonth()===m&&!b.vang){
+      const stt=lop.ngayHoc.slice(0,i+1).filter(x=>!x.vang).length;
+      evs.push({lop,d,stt});
+    }
+  }));
+  evs.sort((a,b)=>a.d-b.d);
+  document.getElementById('cal-events').innerHTML=evs.length===0
+    ?'<div style="font-size:13px;color:var(--text3);text-align:center;padding:12px">Không có buổi học nào trong tháng này</div>'
+    :evs.map(ev=>{
+      const gvCls=GV_CLASS[ev.lop.gv]||'other-gv';
+      return`<div class="cal-ev">
+        <div class="cal-ev-dot" style="background:${COLOR_DOT[ev.lop.loai]}"></div>
+        <span class="cal-ev-date">${DAYS[ev.d.getDay()]} ${fmtDate(ev.d)}</span>
+        <span class="cal-ev-name">${ev.lop.ten}</span>
+        <span class="cal-ev-buoi ${ev.lop.loai}">Buổi ${ev.stt}</span>
+        <span class="cal-ev-gv ${gvCls}">${ev.lop.gv}</span>
+        <span style="font-size:11px;color:var(--text3)">${ev.lop.gioBD}–${ev.lop.gioKT}</span>
+      </div>`;
+    }).join('');
+}
+
+window.prevWeek=function(){tuanView.setDate(tuanView.getDate()-7);renderTuan();};
+window.nextWeek=function(){tuanView.setDate(tuanView.getDate()+7);renderTuan();};
+window.thisWeek=function(){tuanView=new Date();renderTuan();};
+window.filterAll=function(v){lops.forEach(l=>{lopFilter[l.id]=v;});renderTuan();};
+window.toggleFilter=function(id){lopFilter[id]=!lopFilter[id];renderTuan();};
+
+function getMonday(d){
+  const dt=new Date(d);
+  const day=dt.getDay();
+  const diff=day===0?-6:1-day;
+  dt.setDate(dt.getDate()+diff);
+  dt.setHours(0,0,0,0);
+  return dt;
+}
+
+function renderTuan(){
+  if(lops.length===0){
+    document.getElementById('tbl-tuan').innerHTML='<tr><td style="text-align:center;padding:40px;color:var(--text3)">Chưa có lớp nào</td></tr>';
+    document.getElementById('week-label').textContent='';
+    document.getElementById('lop-filter').innerHTML='';
+    return;
+  }
+
+  // Init filter cho lớp mới
+  lops.forEach(l=>{if(lopFilter[l.id]===undefined)lopFilter[l.id]=true;});
+
+  // Render filter buttons
+  document.getElementById('lop-filter').innerHTML=lops.map(l=>`
+    <button class="lop-filter-btn ${lopFilter[l.id]?'on':'off'} ${l.loai}" onclick="toggleFilter('${l.id}')">
+      ${LOAI_ICON[l.loai]} ${l.ten}
+    </button>`).join('');
+
+  const mon=getMonday(tuanView);
+  const days=[0,1,2,3,4,5,6].map(i=>{const d=new Date(mon);d.setDate(mon.getDate()+i);return d;});
+  const today=new Date();today.setHours(0,0,0,0);
+
+  // Week label
+  document.getElementById('week-label').textContent=
+    `${fmtDate(days[0])} – ${fmtDate(days[6])}`;
+
+  // Header row
+  const DAY_NAMES=['Thứ 2','Thứ 3','Thứ 4','Thứ 5','Thứ 6','Thứ 7','Chủ nhật'];
+  let thead='<thead><tr><th style="min-width:50px">Ca học</th>';
+  days.forEach((d,i)=>{
+    const isT=d.getTime()===today.getTime();
+    const dd=String(d.getDate()).padStart(2,'0');
+    const mm=String(d.getMonth()+1).padStart(2,'0');
+    thead+=`<th class="${isT?'thu-hom-nay':''}">${DAY_NAMES[i]}<br><span style="font-weight:400;font-size:11px">${dd}/${mm}</span></th>`;
+  });
+  thead+='</tr></thead>';
+
+  // Thu học → ngày trong tuần
+  // Gom tất cả giờ học có trong tuần này
+  const gioSet=new Set();
+  const activeLops=lops.filter(l=>lopFilter[l.id]);
+  activeLops.forEach(lop=>{
+    lop.ngayHoc.forEach(b=>{
+      if(b.vang)return;
+      const d=new Date(b.date);d.setHours(0,0,0,0);
+      if(days.some(wd=>wd.getTime()===d.getTime())){
+        gioSet.add(lop.gioBD+'–'+lop.gioKT);
+      }
+    });
+  });
+
+  const gioList=Array.from(gioSet).sort();
+
+  let tbody='<tbody>';
+  if(gioList.length===0){
+    tbody+=`<tr><td class="td-label">—</td>${days.map(d=>`<td class="${d.getTime()===today.getTime()?'hom-nay':''}"></td>`).join('')}</tr>`;
+  } else {
+    gioList.forEach(gio=>{
+      tbody+=`<tr><td class="td-label">${gio}</td>`;
+      days.forEach(wd=>{
+        const isT=wd.getTime()===today.getTime();
+        let cells='';
+        activeLops.forEach(lop=>{
+          if((lop.gioBD+'–'+lop.gioKT)!==gio)return;
+          lop.ngayHoc.forEach((b,i)=>{
+            if(b.vang)return;
+            const d=new Date(b.date);d.setHours(0,0,0,0);
+            if(d.getTime()!==wd.getTime())return;
+            const stt=lop.ngayHoc.slice(0,i+1).filter(x=>!x.vang).length;
+            const nd=b.nd||'';
+            const ve=b.ve||'';
+            cells+=`<div class="cell-lop ${lop.loai}" 
+              onmouseenter="showTip(event,'Buổi ${stt}/${lop.sobuoi} — ${lop.ten}','${nd.replace(/'/g,"&#39;").replace(/\n/g,' ')}','${ve.replace(/'/g,"&#39;").replace(/\n/g,' ')}')"
+              onmouseleave="hideTip()">
+              <div class="cell-lop-name">${lop.ten}</div>
+              <div class="cell-lop-info">${lop.gv}</div>
+              <span class="cell-buoi ${lop.loai}">Buổi ${stt}/${lop.sobuoi}</span>
+              ${nd?`<div style="font-size:10px;margin-top:3px;opacity:.8;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">📖 ${nd.split('\n')[0]}</div>`:''}
+            </div>`;
+          });
+        });
+        tbody+=`<td class="${isT?'hom-nay':''}">${cells}</td>`;
+      });
+      tbody+='</tr>';
+    });
+  }
+  tbody+='</tbody>';
+
+  document.getElementById('tbl-tuan').innerHTML=thead+tbody;
+}
+
+// TOOLTIP
+window.showTip=function(e,title,nd,ve){
+  const box=document.getElementById('tooltip-box');
+  let html=`<div class="tooltip-title">${title}</div>`;
+  if(nd&&nd!='(Chưa có nội dung)')html+=`<div class="tooltip-nd">📖 ${nd}</div>`;
+  if(ve)html+=`<div class="tooltip-nd" style="margin-top:4px;padding-top:4px;border-top:1px solid rgba(255,255,255,.2)">📝 Về nhà: ${ve}</div>`;
+  if(!nd||nd=='(Chưa có nội dung)')html+=`<div class="tooltip-nd" style="opacity:.5">(Chưa có nội dung)</div>`;
+  box.innerHTML=html;
+  box.classList.add('show');
+  box.style.left=(e.clientX+14)+'px';
+  box.style.top=(e.clientY-10)+'px';
+};
+window.hideTip=function(){document.getElementById('tooltip-box').classList.remove('show');};
+document.addEventListener('mousemove',e=>{
+  const box=document.getElementById('tooltip-box');
+  if(box.classList.contains('show')){
+    box.style.left=(e.clientX+14)+'px';
+    box.style.top=(e.clientY-10)+'px';
+  }
+});
+
+// CHƯƠNG TRÌNH
+window.switchCT=function(loai){
+  curCT=loai;
+  ['starter','basic','complete','other','phatam','giaotiep','preielts','ielts'].forEach(x=>{
+    const b=document.getElementById('ctbtn-'+x);
+    b.className='ct-loai-btn '+(x===loai?'active ':'')+x;
+  });
+  renderCTList();
+};
+
+function renderCTList(){
+  const list=chuongTrinh[curCT]||[];
+  const el=document.getElementById('ct-buoi-list');
+  if(!el)return;
+  if(list.length===0){
+    el.innerHTML=`<div class="ct-empty">Chưa có buổi nào. Nhấn "Thêm buổi" để bắt đầu.</div>`;
+    return;
+  }
+  let html=`<table class="ct-table">
+    <thead><tr>
+      <th class="th-buoi">Buổi</th>
+      <th class="th-tren">🟢 Nội dung trên lớp</th>
+      <th class="th-ve">🔵 Nhiệm vụ về nhà</th>
+      <th style="width:36px;background:var(--bg);border:1px solid var(--border)"></th>
+    </tr></thead><tbody>`;
+  list.forEach((item,i)=>{
+    const tren=typeof item==='object'?(item.tren||''):item;
+    const ve=typeof item==='object'?(item.ve||''):'';
+    html+=`<tr>
+      <td class="td-num"><div class="ct-buoi-num ${curCT}">${i+1}</div></td>
+      <td><textarea class="ct-textarea" placeholder="Vd: Kiểm tra Test 01&#10;Luyện nghe: Part 1&#10;Kỹ năng nghe tổng quát"
+        oninput="ctSua(${i},'tren',this.value)">${escHtml(tren)}</textarea></td>
+      <td><textarea class="ct-textarea" placeholder="Vd: Học từ vựng Day 1-2&#10;Nghe lại Part 1 đã học"
+        oninput="ctSua(${i},'ve',this.value)">${escHtml(ve)}</textarea></td>
+      <td style="text-align:center;vertical-align:middle;border:1px solid var(--border)">
+        <button class="ct-del-btn" onclick="ctXoaBuoi(${i})" title="Xóa buổi ${i+1}">✕</button>
+      </td>
+    </tr>`;
+  });
+  html+='</tbody></table>';
+  el.innerHTML=html;
+}
+
+function escHtml(s){return(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+
+window.ctThemBuoi=function(){
+  if(!chuongTrinh[curCT])chuongTrinh[curCT]=[];
+  chuongTrinh[curCT].push({tren:'',ve:''});
+  renderCTList();
+  setTimeout(()=>{
+    const tas=document.querySelectorAll('.ct-textarea');
+    if(tas.length)tas[tas.length-2].focus();
+  },50);
+};
+
+window.ctXoaBuoi=function(idx){
+  if(!confirm(`Xóa buổi ${idx+1}?`))return;
+  chuongTrinh[curCT].splice(idx,1);
+  renderCTList();
+};
+
+window.ctSua=function(idx,field,val){
+  if(!chuongTrinh[curCT][idx]||typeof chuongTrinh[curCT][idx]==='string'){
+    const old=chuongTrinh[curCT][idx]||'';
+    chuongTrinh[curCT][idx]={tren:typeof old==='string'?old:'',ve:''};
+  }
+  chuongTrinh[curCT][idx][field]=val;
+};
+
+window.ctSuaBuoi=function(idx,val){chuongTrinh[curCT][idx]=val;};
+
+window.ctLuu=async function(){
+  setSyncStatus('saving');
+  try{
+    await set(ctRef,chuongTrinh);
+    setSyncStatus('ok');
+    showToast('✅ Đã lưu chương trình!');
+  }catch(e){
+    setSyncStatus('err');
+    showToast('❌ Lỗi lưu: '+e.message);
+  }
+};
+
+window.prevMonth=function(){calView.setMonth(calView.getMonth()-1);renderCal();};
+window.nextMonth=function(){calView.setMonth(calView.getMonth()+1);renderCal();};
+
+setSyncStatus('loading');
+</script>
+</body>
+</html>
