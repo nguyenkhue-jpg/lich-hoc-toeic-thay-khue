@@ -401,7 +401,7 @@ body{background:var(--bg);color:var(--text);font-size:15px;min-height:100vh}
         <span class="filter-label">Giáo viên</span>
         <div class="filter-chips" id="chips-gv"></div>
         <input class="search-input" id="search-input" placeholder="🔍 Tìm tên lớp, GV, ghi chú..." oninput="renderDS()">
-        <select class="sort-select" id="sort-select" onchange="renderDS()">
+        <select class="sort-select" id="sort-select" onchange="savePrefs({sortBy:this.value});renderDS()">
           <option value="next">Sắp học gần nhất</option>
           <option value="newest">Khai giảng mới nhất</option>
           <option value="oldest">Khai giảng cũ nhất</option>
@@ -615,7 +615,10 @@ const GV_LIST=['Thầy Khuê','Cô Vy','Thầy Nam','Khác'];
 let lops=[],selDays=[],curLoai='complete',calView=new Date();
 let chuongTrinh={starter:[],basic:[],complete:[],other:[],phatam:[],giaotiep:[],preielts:[],ielts:[]};
 let curCT='starter',ctClipboard=null;
-let filterLoai=new Set(LOAI_ORDER),filterGV=new Set([...GV_LIST]);
+// Load UI prefs từ localStorage
+const _p=loadPrefs();
+let filterLoai=new Set(_p.filterLoai||LOAI_ORDER);
+let filterGV=new Set(_p.filterGV||GV_LIST);
 let tuanView=new Date(),lopFilter={};
 let undoStack=null,undoTimer=null;
 
@@ -624,6 +627,19 @@ function fmtDate(d){return`${String(d.getDate()).padStart(2,'0')}/${String(d.get
 function isoToInput(iso){const d=new Date(iso);return`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;}
 function escHtml(s){return(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
 function deep(o){return JSON.parse(JSON.stringify(o));}
+
+// ── LOCAL PREFS (UI state riêng từng thiết bị, không sync Firebase) ──
+const PREF_KEY='toeic_ui_prefs';
+function loadPrefs(){
+  try{return JSON.parse(localStorage.getItem(PREF_KEY)||'{}');}catch{return{};}
+}
+function savePrefs(patch){
+  try{
+    const cur=loadPrefs();
+    localStorage.setItem(PREF_KEY,JSON.stringify({...cur,...patch}));
+  }catch(e){console.warn('localStorage unavailable',e);}
+}
+function getPref(key,def){const p=loadPrefs();return p[key]!==undefined?p[key]:def;}
 
 function showToast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2500);}
 
@@ -805,9 +821,21 @@ function renderFilterChips(){
   lEl.innerHTML=LOAI_ORDER.map(l=>`<button class="chip ${filterLoai.has(l)?'on':''} ${l}" onclick="toggleFilterLoai('${l}')">${LOAI_ICON[l]} ${LOAI_LABEL[l]}</button>`).join('');
   gEl.innerHTML=GV_LIST.map(g=>{const k=GV_CLASS[g]||'khac-gv';return`<button class="chip ${filterGV.has(g)?'on':''} ${k}" onclick="toggleFilterGV('${g}')">${g}</button>`;}).join('');
 }
-window.toggleFilterLoai=l=>{filterLoai.has(l)?filterLoai.delete(l):filterLoai.add(l);renderFilterChips();renderDS();};
-window.filterLoaiAll=v=>{if(v)LOAI_ORDER.forEach(l=>filterLoai.add(l));else filterLoai.clear();renderFilterChips();renderDS();};
-window.toggleFilterGV=g=>{filterGV.has(g)?filterGV.delete(g):filterGV.add(g);renderFilterChips();renderDS();};
+window.toggleFilterLoai=l=>{
+  filterLoai.has(l)?filterLoai.delete(l):filterLoai.add(l);
+  savePrefs({filterLoai:[...filterLoai]});
+  renderFilterChips();renderDS();
+};
+window.filterLoaiAll=v=>{
+  if(v)LOAI_ORDER.forEach(l=>filterLoai.add(l));else filterLoai.clear();
+  savePrefs({filterLoai:[...filterLoai]});
+  renderFilterChips();renderDS();
+};
+window.toggleFilterGV=g=>{
+  filterGV.has(g)?filterGV.delete(g):filterGV.add(g);
+  savePrefs({filterGV:[...filterGV]});
+  renderFilterChips();renderDS();
+};
 
 // ── SORT/FILTER LOPS ─────────────────────────────
 function getNextBuoi(lop){
@@ -818,7 +846,9 @@ function getNextBuoi(lop){
 
 function getFilteredLops(){
   const q=(document.getElementById('search-input')?.value||'').toLowerCase();
-  const sort=document.getElementById('sort-select')?.value||'next';
+  const sortEl=document.getElementById('sort-select');
+  if(sortEl&&!sortEl.dataset.loaded){sortEl.value=getPref('sortBy','next');sortEl.dataset.loaded='1';}
+  const sort=sortEl?.value||getPref('sortBy','next');
   let res=[...lops].filter(l=>{
     if(!filterLoai.has(l.loai))return false;
     if(!filterGV.has(l.gv))return false;
@@ -826,7 +856,8 @@ function getFilteredLops(){
     return true;
   });
   res.sort((a,b)=>{
-    if((b.pinned?1:0)!==(a.pinned?1:0))return(b.pinned?1:0)-(a.pinned?1:0);
+    const ap=isLopPinned(a.id)?1:0,bp=isLopPinned(b.id)?1:0;
+    if(bp!==ap)return bp-ap;
     if(sort==='next'){const na=getNextBuoi(a),nb=getNextBuoi(b);if(!na&&!nb)return 0;if(!na)return 1;if(!nb)return-1;return na-nb;}
     if(sort==='newest')return new Date(b.ngay)-new Date(a.ngay);
     if(sort==='oldest')return new Date(a.ngay)-new Date(b.ngay);
@@ -858,7 +889,7 @@ function lopHTML(lop){
   const lastValid=valid[valid.length-1];
   const ktStr=lastValid?fmtDate(new Date(lastValid.date)):'—';
   const gvCls=GV_CLASS[lop.gv]||'other-gv';
-  const isOpen=lop.open!==false;
+  const isOpen=isLopOpen(lop.id);
   const locked=lop.locked||false;
 
   let endBadge='';
@@ -903,7 +934,7 @@ function lopHTML(lop){
         <div class="divv"></div>
         <div class="mini-stat"><div class="mini-num ${lop.loai}">${remain}</div><div class="mini-lbl">Còn lại</div></div>
         ${absent>0?`<div class="divv"></div><div class="mini-stat"><div class="mini-num" style="color:var(--red)">${absent}</div><div class="mini-lbl">Vắng</div></div>`:''}
-        <button class="pin-btn${lop.pinned?' pinned':''}" onclick="togglePin(event,'${lop.id}')" title="${lop.pinned?'Bỏ ghim':'Ghim'}">📌</button>
+        <button class="pin-btn${isLopPinned(lop.id)?' pinned':''}" onclick="togglePin(event,'${lop.id}')" title="${isLopPinned(lop.id)?'Bỏ ghim':'Ghim'}">📌</button>
         <span class="chevron${isOpen?' open':''}">▼</span>
       </div>
     </div>
@@ -926,17 +957,32 @@ function lopHTML(lop){
 }
 
 // ── ACTIONS ──────────────────────────────────────
-window.toggleLop=async function(id){
-  const l=lops.find(x=>x.id===id);if(!l)return;
-  l.open=l.open===false;await saveLop(l);renderDS();
+window.toggleLop=function(id){
+  // Lưu trạng thái mở/đóng vào localStorage — không sync Firebase
+  const openMap=getPref('openMap',{});
+  const cur=openMap[id];
+  // Mặc định là open (true), click đầu tiên là đóng (false)
+  openMap[id]=cur===false?true:false;
+  savePrefs({openMap});
+  renderDS();
 };
 
-window.togglePin=async function(e,id){
+function isLopOpen(id){
+  const openMap=getPref('openMap',{});
+  // Nếu chưa có trong map → mặc định mở
+  return openMap[id]!==false;
+}
+
+window.togglePin=function(e,id){
   e.stopPropagation();
-  const l=lops.find(x=>x.id===id);if(!l)return;
-  l.pinned=!l.pinned;await saveLop(l);renderDS();
-  showToast(l.pinned?'📌 Đã ghim lớp':'Đã bỏ ghim');
+  const pinned=getPref('pinned',{});
+  pinned[id]=!pinned[id];
+  savePrefs({pinned});
+  renderDS();
+  showToast(pinned[id]?'📌 Đã ghim lớp':'Đã bỏ ghim');
 };
+
+function isLopPinned(id){return getPref('pinned',{})[id]||false;}
 
 window.toggleLock=async function(id){
   const l=lops.find(x=>x.id===id);if(!l)return;
@@ -1098,7 +1144,7 @@ window.themLop=async function(){
     ngayHoc:ngayHocList.map((d,i)=>{
       const t=tmpl[i];
       return{date:d.toISOString(),vang:false,nd:t?(typeof t==='object'?t.tren||'':t):'',ve:t&&typeof t==='object'?t.ve||'':'',note:''};
-    }),open:true};
+    })};
   lops.push(newLop);
   await saveLop(newLop);
   showToast('✅ Đã tạo lớp '+ten);
@@ -1203,8 +1249,14 @@ window.nextMonth=()=>{calView.setMonth(calView.getMonth()+1);renderCal();};
 window.prevWeek=()=>{tuanView.setDate(tuanView.getDate()-7);renderTuan();};
 window.nextWeek=()=>{tuanView.setDate(tuanView.getDate()+7);renderTuan();};
 window.thisWeek=()=>{tuanView=new Date();renderTuan();};
-window.filterAll=v=>{lops.forEach(l=>{lopFilter[l.id]=v;});renderTuan();};
-window.toggleFilter=id=>{lopFilter[id]=!lopFilter[id];renderTuan();};
+window.filterAll=v=>{
+  lops.forEach(l=>{lopFilter[l.id]=v;});
+  savePrefs({lopFilter});renderTuan();
+};
+window.toggleFilter=id=>{
+  lopFilter[id]=!lopFilter[id];
+  savePrefs({lopFilter});renderTuan();
+};
 
 function getMonday(d){const dt=new Date(d),day=dt.getDay(),diff=day===0?-6:1-day;dt.setDate(dt.getDate()+diff);dt.setHours(0,0,0,0);return dt;}
 
@@ -1213,7 +1265,10 @@ function renderTuan(){
     document.getElementById('tbl-tuan').innerHTML='<tr><td style="text-align:center;padding:40px;color:var(--text3)">Chưa có lớp nào</td></tr>';
     document.getElementById('week-label').textContent='';document.getElementById('lop-filter').innerHTML='';return;
   }
-  lops.forEach(l=>{if(lopFilter[l.id]===undefined)lopFilter[l.id]=true;});
+  const savedLF=getPref('lopFilter',{});
+  lops.forEach(l=>{
+    if(lopFilter[l.id]===undefined)lopFilter[l.id]=savedLF[l.id]!==undefined?savedLF[l.id]:true;
+  });
   document.getElementById('lop-filter').innerHTML=lops.map(l=>`<button class="lop-filter-btn ${lopFilter[l.id]?'on':'off'} ${l.loai}" onclick="toggleFilter('${l.id}')">${LOAI_ICON[l.loai]} ${escHtml(l.ten)}</button>`).join('');
   const mon=getMonday(tuanView);
   const days=[0,1,2,3,4,5,6].map(i=>{const d=new Date(mon);d.setDate(mon.getDate()+i);return d;});
