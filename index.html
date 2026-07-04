@@ -394,6 +394,22 @@ body{background:var(--bg);color:var(--text);font-size:15px;min-height:100vh}
 .warn-card .btn{margin-left:auto}
 .badge.note{background:#FEF3C7;color:#92400E;max-width:150px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .buoi-note-today{font-size:12px;color:#92400E;background:#FFFBEB;border-radius:6px;padding:4px 8px;margin-top:6px;display:inline-block}
+/* BỘ LỌC GV + NỘI DUNG SỔ XUỐNG (tab Hôm nay) */
+.gv-chips{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px;align-items:center}
+.gv-chips-lbl{font-size:12px;color:var(--text3);font-weight:600;margin-right:2px}
+.gv-chip{padding:6px 14px;border-radius:20px;border:1px solid var(--border2);background:#fff;font-size:13px;font-weight:700;cursor:pointer;font-family:Arial;color:var(--text2);transition:all .15s;user-select:none}
+.gv-chip:hover{border-color:var(--accent);color:var(--accent)}
+.gv-chip.on{background:var(--accent);color:#fff;border-color:var(--accent)}
+.nd-toggle{margin-top:8px;font-size:13px;font-weight:700;color:var(--accent);cursor:pointer;user-select:none;display:inline-flex;align-items:center;gap:6px;padding:4px 0}
+.nd-toggle:hover{text-decoration:underline}
+.nd-chev{display:inline-block;transition:transform .2s;font-size:11px}
+.nd-toggle.open .nd-chev{transform:rotate(180deg)}
+.nd-body{background:var(--bg);border-radius:8px;padding:10px 14px;margin-top:6px;font-size:13px;line-height:1.7}
+.nd-sec+.nd-sec{margin-top:10px;padding-top:10px;border-top:1px dashed var(--border2)}
+.nd-sec>b{display:block;font-size:11px;text-transform:uppercase;letter-spacing:.4px;margin-bottom:4px}
+.nd-ul{margin:2px 0 2px 20px;padding:0}
+.nd-ul li{margin:2px 0}
+.nd-none{font-size:12px;color:var(--text3);margin-top:8px;font-style:italic}
 
 /* LOADING */
 .loading{text-align:center;padding:40px;color:var(--text3);font-size:14px}
@@ -821,6 +837,8 @@ let lopsLoaded=false;
 let lopFilter=lsGet('tk_filter',{});
 let openState=lsGet('tk_open',{});
 let hideEnded=lsGet('tk_hide_ended',false);
+let todayGV='';                 // bộ lọc GV tab Hôm nay (mặc định: tất cả)
+const todayOpen=new Set();      // các thanh nội dung đang mở (giữ khi re-render)
 
 /* ===== HELPERS ===== */
 function esc(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');}
@@ -877,6 +895,24 @@ function resortDates(lop){
 }
 function isEnded(lop){const t=today0();return lop.ngayHoc.length>0&&!lop.ngayHoc.some(b=>!b.vang&&pd(b.date)>=t);}
 function remainOf(lop){const t=today0();return lop.ngayHoc.filter(b=>!b.vang&&pd(b.date)>=t).length;}
+// Định dạng nội dung buổi học: mỗi dòng 1 đoạn, dòng bắt đầu bằng - • * + thành gạch đầu dòng
+function fmtND(s){
+  const lines=String(s||'').split('\n');
+  let html='',ul=false;
+  for(const raw of lines){
+    const line=raw.trim();
+    const m=line.match(/^[-•*+]\s*(.+)/);
+    if(m){
+      if(!ul){html+='<ul class="nd-ul">';ul=true;}
+      html+='<li>'+esc(m[1])+'</li>';
+    }else{
+      if(ul){html+='</ul>';ul=false;}
+      if(line)html+='<div>'+esc(line)+'</div>';
+    }
+  }
+  if(ul)html+='</ul>';
+  return html;
+}
 // Tìm kiếm không dấu tiếng Việt
 function normVN(s){return String(s||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[đĐ]/g,'d').toLowerCase();}
 // Trạng thái lớp: chuaKG → danghoc → sapKT → ketthuc
@@ -1252,6 +1288,19 @@ function renderToday(){
     '<div class="stat-chip"><div class="n" style="color:#1E40AF">'+cnt.chuaKG+'</div><div class="l">Chưa khai giảng</div></div>'+
     '<div class="stat-chip"><div class="n">'+nDuKien+'</div><div class="l">Lớp dự kiến của bạn</div></div>'+
   '</div>';
+  // Bộ lọc giáo viên: đếm số ca hôm nay theo GV
+  const gvKey=(g)=>GV_CLASS[g]?g:'Khác';
+  const gvCount={};
+  items.forEach(it=>{const k=gvKey(it.lop.gv);gvCount[k]=(gvCount[k]||0)+1;});
+  const gvOrder=['Cô Vy','Thầy Khuê','Thầy Nam','Khác'].filter(g=>gvCount[g]);
+  let gvChips='';
+  if(items.length>0){
+    gvChips='<div class="gv-chips"><span class="gv-chips-lbl">👩‍🏫 Lọc theo GV:</span>'+
+      '<button class="gv-chip'+(todayGV===''?' on':'')+'" onclick="setTodayGV(\'\')">Tất cả ('+items.length+')</button>'+
+      gvOrder.map(g=>'<button class="gv-chip'+(todayGV===g?' on':'')+'" onclick="setTodayGV(\''+g+'\')">'+esc(g)+' ('+gvCount[g]+')</button>').join('')+
+    '</div>';
+  }
+  const shown=todayGV?items.filter(it=>gvKey(it.lop.gv)===todayGV):items;
   // Cảnh báo lớp sắp kết thúc (còn 1–3 buổi)
   let warnHtml='';
   lops.forEach(l=>{
@@ -1266,15 +1315,24 @@ function renderToday(){
     el.innerHTML=dash+warnHtml+'<div class="empty-state"><span class="empty-icon">🌤️</span><div class="empty-title">Hôm nay không có lớp nào</div><div class="empty-desc">Xem tab <b>Lịch tuần</b> để biết các buổi sắp tới.</div></div>';
     return;
   }
-  el.innerHTML=dash+warnHtml+items.map(it=>{
+  if(shown.length===0){
+    el.innerHTML=dash+gvChips+warnHtml+'<div class="empty-state" style="padding:36px"><span class="empty-icon">🎉</span><div class="empty-title">'+esc(todayGV)+' không có ca dạy hôm nay</div></div>';
+    return;
+  }
+  el.innerHTML=dash+gvChips+warnHtml+shown.map(it=>{
     const ct=getContent(it.lop,it.stt);
     const gvCls=GV_CLASS[it.lop.gv]||'other-gv';
     let ndHtml='';
     if(ct.nd||ct.ve){
-      ndHtml='<div class="today-nd">';
-      if(ct.nd)ndHtml+='<b style="color:#276221">🟢 Trên lớp:</b>\n'+esc(ct.nd);
-      if(ct.ve)ndHtml+=(ct.nd?'\n\n':'')+'<b style="color:#1a5276">🔵 Về nhà:</b>\n'+esc(ct.ve);
-      ndHtml+='</div>';
+      const key=it.lop.id+'_'+it.i;
+      const opened=todayOpen.has(key);
+      ndHtml='<div class="nd-toggle'+(opened?' open':'')+'" onclick="toggleND(\''+key+'\')">📖 Nội dung buổi học <span class="nd-chev">▼</span></div>'+
+        '<div class="nd-body" style="display:'+(opened?'block':'none')+'">'+
+        (ct.nd?'<div class="nd-sec"><b style="color:#276221">🟢 Trên lớp</b>'+fmtND(ct.nd)+'</div>':'')+
+        (ct.ve?'<div class="nd-sec"><b style="color:#1a5276">🔵 Nhiệm vụ về nhà</b>'+fmtND(ct.ve)+'</div>':'')+
+        '</div>';
+    }else{
+      ndHtml='<div class="nd-none">— Chưa có nội dung cho buổi này —</div>';
     }
     return '<div class="today-card" style="border-left-color:'+LOAI_MAIN[it.lop.loai]+'">'+
       '<div class="today-time"><div class="today-gio">'+esc(it.lop.gioBD)+'</div><div class="today-gio2">– '+esc(it.lop.gioKT)+'</div></div>'+
@@ -2032,6 +2090,13 @@ window.dkTuLop=function(lid){
   renderDayPicker('day-picker-dk',selDaysDK,'toggleDayDK');
   window.switchTab('dukien');
   showToast('🗓️ Đã điền sẵn thông tin từ lớp '+lop.ten+' — chọn ngày khai giảng mới');
+};
+
+/* ===== TAB HÔM NAY: LỌC GV + SỔ XUỐNG NỘI DUNG ===== */
+window.setTodayGV=function(g){todayGV=g;renderToday();};
+window.toggleND=function(k){
+  if(todayOpen.has(k))todayOpen.delete(k);else todayOpen.add(k);
+  renderToday();
 };
 
 /* ===== TÌM KIẾM & BỘ LỌC DANH SÁCH ===== */
