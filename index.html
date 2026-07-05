@@ -389,6 +389,12 @@ body{background:var(--bg);color:var(--text);font-size:15px;min-height:100vh}
 .adm-month-lbl{font-size:14px;font-weight:700;min-width:150px;text-align:center}
 .ds-toolbar{display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap;align-items:center}
 .ds-hidden-note{font-size:12px;color:var(--text3);padding:10px 14px;background:var(--bg);border:1px dashed var(--border2);border-radius:10px;text-align:center;margin-bottom:10px}
+.ds-pills{display:flex;gap:6px;flex-wrap:wrap;flex-basis:100%}
+.ds-pill{padding:6px 14px;border-radius:20px;border:1px solid var(--border2);background:#fff;color:var(--text2);font-size:12px;font-weight:700;cursor:pointer;font-family:Arial;transition:all .15s}
+.ds-pill:hover{border-color:var(--accent)}
+.ds-pill.on{background:var(--accent);border-color:var(--accent);color:#fff}
+.dk-due{margin-top:8px;padding:8px 12px;border-radius:8px;background:#FEF3C7;border:1px solid #FCD34D;color:#92400E;font-size:12px;font-weight:700}
+.e-hint{margin-top:2px;padding:9px 12px;border-radius:8px;background:var(--accent-bg);border:1px solid #BFDBFE;color:var(--text2);font-size:12px;line-height:1.6}
 .warn-card{background:#FFFBEB;border:1px solid #F5D060;border-radius:12px;padding:12px 16px;margin-bottom:10px;display:flex;align-items:center;gap:10px;flex-wrap:wrap;font-size:13px;line-height:1.6}
 .warn-card .warn-ico{font-size:18px;flex-shrink:0}
 .warn-card .btn{margin-left:auto}
@@ -515,6 +521,12 @@ body{background:var(--bg);color:var(--text);font-size:15px;min-height:100vh}
       </select>
       <button class="btn sm" onclick="openLe()">🎉 Nghỉ lễ</button>
       <button class="btn sm" id="btn-hide-ended" onclick="toggleHideEnded()"></button>
+      <div class="ds-pills" id="ds-pills">
+        <button class="ds-pill on" data-st="" onclick="setDSStatus('')">Tất cả</button>
+        <button class="ds-pill" data-st="running" onclick="setDSStatus('running')">🟢 Đang học</button>
+        <button class="ds-pill" data-st="upcoming" onclick="setDSStatus('upcoming')">🔜 Sắp khai giảng</button>
+        <button class="ds-pill" data-st="ended" onclick="setDSStatus('ended')">🏁 Đã kết thúc</button>
+      </div>
     </div>
     <div id="ds-loading" class="loading">⏳ Đang tải dữ liệu...</div>
     <div id="ds-empty" class="empty-state" style="display:none">
@@ -717,9 +729,11 @@ body{background:var(--bg);color:var(--text);font-size:15px;min-height:100vh}
 
 <!-- MODAL: SỬA LỚP -->
 <div class="modal-ov" id="modal-edit">
-  <div class="modal-card">
+  <div class="modal-card" style="max-width:560px">
     <div class="modal-title">✏️ Sửa thông tin lớp</div>
-    <div class="form-grid" style="grid-template-columns:1fr;gap:10px">
+    <div class="sec-label" style="margin-top:2px">Loại lớp</div>
+    <div class="loai-grid" id="loai-grid-edit"></div>
+    <div class="form-grid" style="grid-template-columns:1fr;gap:10px;margin-top:10px">
       <div class="fld"><label>Tên lớp</label><input id="e-ten" type="text" maxlength="80"></div>
       <div class="fld"><label>Giáo viên</label>
         <select id="e-gv">
@@ -729,11 +743,19 @@ body{background:var(--bg);color:var(--text);font-size:15px;min-height:100vh}
           <option value="Khác">Khác</option>
         </select>
       </div>
-      <div class="form-grid g2">
+      <div class="form-grid g3">
+        <div class="fld"><label>Ngày khai giảng</label><input id="e-ngay" type="date"></div>
         <div class="fld"><label>Giờ bắt đầu</label><input id="e-bd" type="time"></div>
         <div class="fld"><label>Giờ kết thúc</label><input id="e-kt" type="time"></div>
       </div>
-      <div class="fld"><label>Ghi chú</label><input id="e-ghichu" type="text" maxlength="200"></div>
+      <div class="fld"><label>Thứ học trong tuần</label>
+        <div class="day-row" id="day-picker-edit" style="margin-top:4px"></div>
+      </div>
+      <div class="form-grid g2">
+        <div class="fld"><label>Tổng số buổi</label><input id="e-sobuoi" type="number" min="1" max="200"></div>
+        <div class="fld"><label>Ghi chú</label><input id="e-ghichu" type="text" maxlength="200"></div>
+      </div>
+      <div class="e-hint" id="e-hint"></div>
     </div>
     <div class="fld-err" id="e-err"></div>
     <div class="row-btns">
@@ -831,6 +853,7 @@ const GV_CLASS={'Cô Vy':'vy','Thầy Khuê':'khue','Thầy Nam':'nam'};
 let lops=[], chuongTrinh={}, users={}, dukien={};
 LOAI_KEYS.forEach(k=>chuongTrinh[k]=[]);
 let selDaysMain=[], selDaysDK=[], curLoai='complete', curLoaiDK='complete', curCT='starter';
+let selDaysEdit=[], curLoaiEdit='complete', dsStatus='';
 let calView=new Date(), tuanView=new Date();
 let curUser=null, dukienUnsub=null, dkEditId=null;
 let lopsLoaded=false;
@@ -895,6 +918,39 @@ function resortDates(lop){
 }
 function isEnded(lop){const t=today0();return lop.ngayHoc.length>0&&!lop.ngayHoc.some(b=>!b.vang&&pd(b.date)>=t);}
 function remainOf(lop){const t=today0();return lop.ngayHoc.filter(b=>!b.vang&&pd(b.date)>=t).length;}
+function doneOf(lop){const t=today0();return lop.ngayHoc.filter(b=>!b.vang&&pd(b.date)<t).length;}
+function ymdStr(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');}
+// Nội dung mẫu từ chương trình cho slot idx (template có thể là string hoặc {tren, ve})
+function tplContent(loai,idx){
+  const tp=(chuongTrinh[loai]||[])[idx];
+  const tren=tp?(typeof tp==='object'?(tp.tren||''):tp):'';
+  const ve=(tp&&typeof tp==='object')?(tp.ve||''):'';
+  return{nd:tren,ve:ve};
+}
+// Tính lại lịch khi sửa lớp: GIỮ NGUYÊN các buổi đã qua (ngày < hôm nay),
+// xếp lại các buổi từ hôm nay trở đi theo thứ học/số buổi mới.
+// - Lớp chưa bắt đầu (p=0): tính lại toàn bộ từ ngày khai giảng mới.
+// - Nội dung nd/ve giữ theo vị trí slot (không lệch chương trình); slot mới lấy từ template.
+// - Nếu đổi loại lớp kèm đổi lịch: các buổi tương lai nhận chương trình của loại mới.
+function tinhLaiLich(lop,ngay,thuHoc,sobuoi,loai){
+  const t=today0();
+  let p=0;while(p<lop.ngayHoc.length&&pd(lop.ngayHoc[p].date)<t)p++;
+  const pastValid=lop.ngayHoc.slice(0,p).filter(b=>!b.vang).length;
+  if(sobuoi<pastValid)return{err:'Số buổi mới ('+sobuoi+') không được nhỏ hơn số buổi đã học ('+pastValid+').'};
+  const futureValid=sobuoi-pastValid;
+  const startStr=(p===0)?ngay:ymdStr(t);
+  const dates=tinhNgay(startStr,thuHoc,futureValid);
+  if(dates.length<futureValid)return{err:'Không thể xếp đủ '+futureValid+' buổi còn lại — kiểm tra lại thứ học.'};
+  const loaiChanged=loai!==lop.loai;
+  const old=lop.ngayHoc;
+  const fut=dates.map((d,j)=>{
+    const idx=p+j;
+    const prev=(!loaiChanged&&old[idx])?old[idx]:null;
+    const c=prev?{nd:prev.nd||'',ve:prev.ve||''}:tplContent(loai,idx);
+    return{date:isoNoon(d),vang:false,nd:c.nd,ve:c.ve};
+  });
+  return{ngayHoc:old.slice(0,p).concat(fut)};
+}
 // Định dạng nội dung buổi học: mỗi dòng 1 đoạn, dòng bắt đầu bằng - • * + thành gạch đầu dòng
 function fmtND(s){
   const lines=String(s||'').split('\n');
@@ -1191,6 +1247,12 @@ function renderLoaiGrid(elId,cur,handler){
 }
 window.selLoai=function(l){curLoai=l;renderLoaiGrid('loai-grid-main',curLoai,'selLoai');};
 window.selLoaiDK=function(l){curLoaiDK=l;renderLoaiGrid('loai-grid-dk',curLoaiDK,'selLoaiDK');window.dkCompute();};
+window.selLoaiEdit=function(l){curLoaiEdit=l;renderLoaiGrid('loai-grid-edit',curLoaiEdit,'selLoaiEdit');};
+window.toggleDayEdit=function(d){
+  if(selDaysEdit.includes(d))selDaysEdit=selDaysEdit.filter(x=>x!==d);
+  else selDaysEdit.push(d);
+  renderDayPicker('day-picker-edit',selDaysEdit,'toggleDayEdit');
+};
 
 /* ===== DAY PICKER (dùng chung 2 form) ===== */
 function renderDayPicker(elId,arr,handler){
@@ -1358,18 +1420,22 @@ function renderDS(){
   tb.style.display='flex';
   const endedCount=lops.filter(isEnded).length;
   const hb=document.getElementById('btn-hide-ended');
-  hb.style.display=endedCount>0?'inline-flex':'none';
+  hb.style.display=(endedCount>0&&!dsStatus)?'inline-flex':'none';
   hb.textContent=hideEnded?('👁 Hiện lớp đã kết thúc ('+endedCount+')'):('🙈 Ẩn lớp đã kết thúc ('+endedCount+')');
   const q=normVN(document.getElementById('ds-search').value);
   const fgv=document.getElementById('ds-f-gv').value;
   const floai=document.getElementById('ds-f-loai').value;
-  let show=hideEnded?lops.filter(l=>!isEnded(l)):lops.slice();
+  let show=lops.slice();
+  if(dsStatus==='ended')show=show.filter(isEnded);
+  else if(dsStatus==='running')show=show.filter(l=>!isEnded(l)&&doneOf(l)>0);
+  else if(dsStatus==='upcoming')show=show.filter(l=>!isEnded(l)&&doneOf(l)===0);
+  else if(hideEnded)show=show.filter(l=>!isEnded(l));
   if(q)show=show.filter(l=>normVN(l.ten).includes(q)||normVN(l.gv).includes(q)||normVN(l.ghichu||'').includes(q));
   if(fgv)show=show.filter(l=>fgv==='Khác'?!GV_CLASS[l.gv]:l.gv===fgv);
   if(floai)show=show.filter(l=>l.loai===floai);
   let extra='';
-  if(hideEnded&&endedCount>0)extra+='<div class="ds-hidden-note">Đang ẩn '+endedCount+' lớp đã kết thúc — nhấn nút phía trên để hiện lại.</div>';
-  if(q||fgv||floai)extra+='<div class="ds-hidden-note">Hiển thị <b>'+show.length+'/'+lops.length+'</b> lớp theo bộ lọc — <a style="color:var(--accent);cursor:pointer;font-weight:700" onclick="clearDSFilter()">✕ Xóa bộ lọc</a></div>';
+  if(!dsStatus&&hideEnded&&endedCount>0)extra+='<div class="ds-hidden-note">Đang ẩn '+endedCount+' lớp đã kết thúc — nhấn nút phía trên để hiện lại.</div>';
+  if(q||fgv||floai||dsStatus)extra+='<div class="ds-hidden-note">Hiển thị <b>'+show.length+'/'+lops.length+'</b> lớp theo bộ lọc — <a style="color:var(--accent);cursor:pointer;font-weight:700" onclick="clearDSFilter()">✕ Xóa bộ lọc</a></div>';
   if(show.length===0){el.innerHTML=extra+'<div class="empty-state" style="padding:30px"><span class="empty-icon">🔍</span><div class="empty-title">Không có lớp nào khớp</div></div>';return;}
   el.innerHTML=extra+show.map(lopHTML).join('');
   requestAnimationFrame(()=>{
@@ -1522,6 +1588,18 @@ window.openEdit=function(id){
   document.getElementById('e-bd').value=l.gioBD;
   document.getElementById('e-kt').value=l.gioKT;
   document.getElementById('e-ghichu').value=l.ghichu||'';
+  curLoaiEdit=l.loai;renderLoaiGrid('loai-grid-edit',curLoaiEdit,'selLoaiEdit');
+  selDaysEdit=[...(l.thuHoc||[])];renderDayPicker('day-picker-edit',selDaysEdit,'toggleDayEdit');
+  document.getElementById('e-sobuoi').value=l.sobuoi;
+  const ngayEl=document.getElementById('e-ngay');
+  ngayEl.value=l.ngay||'';
+  const t=today0();
+  let p=0;while(p<l.ngayHoc.length&&pd(l.ngayHoc[p].date)<t)p++;
+  const started=p>0;
+  ngayEl.disabled=started;
+  document.getElementById('e-hint').textContent=started
+    ?'ℹ️ Lớp đã bắt đầu — các buổi đã qua được giữ nguyên (kể cả buổi vắng). Nếu đổi thứ học / số buổi / loại lớp, các buổi từ hôm nay trở đi sẽ được xếp lại (đánh dấu vắng & ghi chú của buổi tương lai sẽ đặt lại). Ngày khai giảng bị khóa vì lớp đã học.'
+    :'ℹ️ Lớp chưa bắt đầu — đổi ngày khai giảng / thứ học / số buổi sẽ tính lại toàn bộ lịch.';
   showErr('e-err',null);
   document.getElementById('modal-edit').classList.add('show');
 };
@@ -1529,14 +1607,25 @@ window.closeEdit=function(){document.getElementById('modal-edit').classList.remo
 window.saveEdit=async function(){
   const l=lops.find(x=>x.id===editId);if(!l)return;
   const ten=document.getElementById('e-ten').value.trim();
+  const gv=document.getElementById('e-gv').value;
   const bd=document.getElementById('e-bd').value;
   const kt=document.getElementById('e-kt').value;
-  if(!ten){showErr('e-err','Vui lòng nhập tên lớp.');return;}
-  if(!bd||!kt||kt<=bd){showErr('e-err','Giờ kết thúc phải sau giờ bắt đầu.');return;}
-  l.ten=ten;
-  l.gv=document.getElementById('e-gv').value;
-  l.gioBD=bd;l.gioKT=kt;
-  l.ghichu=document.getElementById('e-ghichu').value.trim();
+  const ghichu=document.getElementById('e-ghichu').value.trim();
+  const ngay=document.getElementById('e-ngay').value||l.ngay;
+  const sobuoi=parseInt(document.getElementById('e-sobuoi').value)||0;
+  const err=validateLopForm(ten,ngay,bd,kt,sobuoi,selDaysEdit);
+  if(err){showErr('e-err',err);return;}
+  const newThu=[...selDaysEdit].sort((a,b)=>a-b);
+  const oldThu=[...(l.thuHoc||[])].sort((a,b)=>a-b);
+  const schedChanged=ngay!==l.ngay||sobuoi!==l.sobuoi||JSON.stringify(newThu)!==JSON.stringify(oldThu);
+  if(schedChanged){
+    const r=tinhLaiLich(l,ngay,newThu,sobuoi,curLoaiEdit);
+    if(r.err){showErr('e-err',r.err);return;}
+    l.ngayHoc=r.ngayHoc;
+    l.ngay=ngay;l.sobuoi=sobuoi;l.thuHoc=newThu;
+  }
+  // Chỉ đổi loại lớp (không đổi lịch): giữ nguyên lịch & nội dung, chỉ đổi nhãn/màu
+  l.ten=ten;l.gv=gv;l.gioBD=bd;l.gioKT=kt;l.ghichu=ghichu;l.loai=curLoaiEdit;
   if(await saveLop(l)){window.closeEdit();renderAllVisible();showToast('💾 Đã lưu thay đổi');}
 };
 
@@ -1645,17 +1734,20 @@ function renderDuKien(){
   if(items.length===0){listEl.innerHTML='';emEl.style.display='block';}
   else{
     emEl.style.display='none';
+    const t0=today0();
     listEl.innerHTML='<div class="form-title" style="margin:4px 2px 12px">📌 Lớp dự kiến của bạn ('+items.length+')</div>'+items.map(d=>{
       const dates=tinhNgay(d.ngay,d.thuHoc||[],d.sobuoi);
       const kg=dates[0],kt=dates[dates.length-1];
       const gvCls=GV_CLASS[d.gv]||'other-gv';
       const thuStr=(d.thuHoc||[]).map(x=>DAYS[x]).join(' · ');
+      const due=kg&&kg.getTime()<=t0.getTime();
       return '<div class="dk-card" style="border-left-color:'+LOAI_MAIN[d.loai]+'">'+
         '<div class="dk-top">'+
           '<div class="dk-name" style="color:'+LOAI_MAIN[d.loai]+'">'+LOAI_ICON[d.loai]+' '+esc(d.ten)+'</div>'+
           '<div class="dk-dates">'+(kg?fmtDateShort(kg):'?')+' → '+(kt?fmtDate(kt):'?')+'</div>'+
         '</div>'+
         '<div class="dk-meta">'+esc(LOAI_TEN[d.loai])+' · '+thuStr+' · '+esc(d.gioBD)+'–'+esc(d.gioKT)+' · <b>'+d.sobuoi+' buổi</b> · <span class="gv-tag '+gvCls+'" style="margin-left:0">'+esc(d.gv)+'</span>'+(d.ghichu?'<br>📝 '+esc(d.ghichu):'')+'</div>'+
+        (due?'<div class="dk-due">⚠️ Đã tới ngày khai giảng — nếu lớp đã chốt, hãy nhấn "✓ Chuyển thành lớp chính thức".</div>':'')+
         '<div class="dk-actions">'+
           '<button class="btn sm prim" onclick="dkChot(\''+esc(d.id)+'\')">✓ Chuyển thành lớp chính thức</button>'+
           '<button class="btn sm" onclick="dkSua(\''+esc(d.id)+'\')">✏️ Sửa</button>'+
@@ -2101,10 +2193,17 @@ window.toggleND=function(k){
 
 /* ===== TÌM KIẾM & BỘ LỌC DANH SÁCH ===== */
 window.dsFilterChange=function(){renderDS();};
+window.setDSStatus=function(s){
+  dsStatus=s;
+  document.querySelectorAll('#ds-pills .ds-pill').forEach(b=>b.classList.toggle('on',b.dataset.st===s));
+  renderDS();
+};
 window.clearDSFilter=function(){
   document.getElementById('ds-search').value='';
   document.getElementById('ds-f-gv').value='';
   document.getElementById('ds-f-loai').value='';
+  dsStatus='';
+  document.querySelectorAll('#ds-pills .ds-pill').forEach(b=>b.classList.toggle('on',b.dataset.st===''));
   renderDS();
 };
 
