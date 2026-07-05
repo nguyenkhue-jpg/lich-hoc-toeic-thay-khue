@@ -111,45 +111,48 @@ body{background:var(--bg);color:var(--text);font-size:15px;min-height:100vh}
 .lop-wrap{margin-bottom:10px;border-radius:12px;overflow:hidden;box-shadow:0 1px 4px rgba(0,0,0,.08)}
 .lop-head{display:flex;align-items:center;gap:12px;padding:14px 16px;cursor:pointer;transition:opacity .15s}
 .lop-head:hover{opacity:.9}
-.lop-head.starter{background:var(--starter);border:1px solid var(--starter);border-bottom:none}
-.lop-head.basic{background:var(--basic);border:1px solid var(--basic);border-bottom:none}
-.lop-head.complete{background:var(--complete);border:1px solid var(--complete);border-bottom:none}
-.lop-head.other{background:var(--other);border:1px solid var(--other);border-bottom:none}
-.lop-head.phatam{background:var(--phatam);border:1px solid var(--phatam);border-bottom:none}
-.lop-head.giaotiep{background:var(--giaotiep);border:1px solid var(--giaotiep);border-bottom:none}
-.lop-head.preielts{background:var(--preielts);border:1px solid var(--preielts);border-bottom:none}
-.lop-head.ielts{background:var(--ielts);border:1px solid var(--ielts);border-bottom:none}
+.lop-head.starter{background:var(--starter-bg);border:1px solid var(--starter-border);border-left:5px solid var(--starter);border-bottom:none}
+.lop-head.basic{background:var(--basic-bg);border:1px solid var(--basic-border);border-left:5px solid var(--basic);border-bottom:none}
+.lop-head.complete{background:var(--complete-bg);border:1px solid var(--complete-border);border-left:5px solid var(--complete);border-bottom:none}
+.lop-head.other{background:var(--other-bg);border:1px solid var(--other-border);border-left:5px solid var(--other);border-bottom:none}
+.lop-head.phatam{background:var(--phatam-bg);border:1px solid var(--phatam-border);border-left:5px solid var(--phatam);border-bottom:none}
+.lop-head.giaotiep{background:var(--giaotiep-bg);border:1px solid var(--giaotiep-border);border-left:5px solid var(--giaotiep);border-bottom:none}
+.lop-head.preielts{background:var(--preielts-bg);border:1px solid var(--preielts-border);border-left:5px solid var(--preielts);border-bottom:none}
+.lop-head.ielts{background:var(--ielts-bg);border:1px solid var(--ielts-border);border-left:5px solid var(--ielts);border-bottom:none}
 .lop-head.collapsed{border-radius:12px;border-bottom:1px solid}
-.lop-head.collapsed.starter{border-color:var(--starter)}
-.lop-head.collapsed.basic{border-color:var(--basic)}
-.lop-head.collapsed.complete{border-color:var(--complete)}
-.lop-head.collapsed.other{border-color:var(--other)}
-.lop-head.collapsed.phatam{border-color:var(--phatam)}
-.lop-head.collapsed.giaotiep{border-color:var(--giaotiep)}
-.lop-head.collapsed.preielts{border-color:var(--preielts)}
-.lop-head.collapsed.ielts{border-color:var(--ielts)}
-.class-icon{width:40px;height:40px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0;background:rgba(255,255,255,.22)}
-.class-icon.starter,.class-icon.basic,.class-icon.complete,.class-icon.other,.class-icon.phatam,.class-icon.giaotiep,.class-icon.preielts,.class-icon.ielts{background:rgba(255,255,255,.22)}
+.lop-head.collapsed.starter{border-bottom-color:var(--starter-border)}
+.lop-head.collapsed.basic{border-bottom-color:var(--basic-border)}
+.lop-head.collapsed.complete{border-bottom-color:var(--complete-border)}
+.lop-head.collapsed.other{border-bottom-color:var(--other-border)}
+.lop-head.collapsed.phatam{border-bottom-color:var(--phatam-border)}
+.lop-head.collapsed.giaotiep{border-bottom-color:var(--giaotiep-border)}
+.lop-head.collapsed.preielts{border-bottom-color:var(--preielts-border)}
+.lop-head.collapsed.ielts{border-bottom-color:var(--ielts-border)}
+.class-icon{width:40px;height:40px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0}
+.class-icon.starter{background:var(--starter)}.class-icon.basic{background:var(--basic)}.class-icon.complete{background:var(--complete)}.class-icon.other{background:var(--other)}
+.class-icon.phatam{background:var(--phatam)}.class-icon.giaotiep{background:var(--giaotiep)}.class-icon.preielts{background:var(--preielts)}.class-icon.ielts{background:var(--ielts)}
 .lop-info{flex:1;min-width:0}
-.lop-name{font-size:15px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:#fff}
-.lop-name.starter,.lop-name.basic,.lop-name.complete,.lop-name.other,.lop-name.phatam,.lop-name.giaotiep,.lop-name.preielts,.lop-name.ielts{color:#fff}
-.lop-sub{font-size:12px;color:rgba(255,255,255,.85);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.lop-name{font-size:15px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.lop-name.starter{color:var(--starter)}.lop-name.basic{color:var(--basic)}.lop-name.complete{color:var(--complete)}.lop-name.other{color:var(--other)}
+.lop-name.phatam{color:var(--phatam)}.lop-name.giaotiep{color:var(--giaotiep)}.lop-name.preielts{color:var(--preielts)}.lop-name.ielts{color:var(--ielts)}
+.lop-sub{font-size:12px;color:var(--text2);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .lop-stats{display:flex;gap:12px;align-items:center;flex-shrink:0}
 .mini-stat{text-align:center;min-width:36px}
-.mini-num{font-size:17px;font-weight:700;color:#fff}
-.mini-num.starter,.mini-num.basic,.mini-num.complete,.mini-num.other,.mini-num.phatam,.mini-num.giaotiep,.mini-num.preielts,.mini-num.ielts{color:#fff}
-.mini-lbl{font-size:10px;color:rgba(255,255,255,.8)}
-.divv{width:1px;height:32px;background:rgba(255,255,255,.35)}
-.chevron{font-size:16px;color:rgba(255,255,255,.85);margin-left:4px;transition:transform .2s}
+.mini-num{font-size:17px;font-weight:700}
+.mini-num.starter{color:var(--starter)}.mini-num.basic{color:var(--basic)}.mini-num.complete{color:var(--complete)}.mini-num.other{color:var(--other)}
+.mini-num.phatam{color:var(--phatam)}.mini-num.giaotiep{color:var(--giaotiep)}.mini-num.preielts{color:var(--preielts)}.mini-num.ielts{color:var(--ielts)}
+.mini-lbl{font-size:10px;color:var(--text3)}
+.divv{width:1px;height:32px;background:rgba(0,0,0,.1)}
+.chevron{font-size:16px;color:var(--text3);margin-left:4px;transition:transform .2s}
 .chevron.open{transform:rotate(180deg)}
-.done-chip{font-size:10px;padding:3px 9px;border-radius:12px;font-weight:700;background:rgba(255,255,255,.25);color:#fff;flex-shrink:0}
+.done-chip{font-size:10px;padding:3px 9px;border-radius:12px;font-weight:700;background:#E5E7EB;color:var(--text2);flex-shrink:0}
 
 .lop-body{border:1px solid;border-top:none;border-radius:0 0 12px 12px;background:#fff;display:none}
 .lop-body.open{display:block}
-.lop-body.starter{border-color:var(--starter-border)}.lop-body.basic{border-color:var(--basic-border)}
-.lop-body.complete{border-color:var(--complete-border)}.lop-body.other{border-color:var(--other-border)}
-.lop-body.phatam{border-color:var(--phatam-border)}.lop-body.giaotiep{border-color:var(--giaotiep-border)}
-.lop-body.preielts{border-color:var(--preielts-border)}.lop-body.ielts{border-color:var(--ielts-border)}
+.lop-body.starter{border-color:var(--starter-border);border-left:5px solid var(--starter)}.lop-body.basic{border-color:var(--basic-border);border-left:5px solid var(--basic)}
+.lop-body.complete{border-color:var(--complete-border);border-left:5px solid var(--complete)}.lop-body.other{border-color:var(--other-border);border-left:5px solid var(--other)}
+.lop-body.phatam{border-color:var(--phatam-border);border-left:5px solid var(--phatam)}.lop-body.giaotiep{border-color:var(--giaotiep-border);border-left:5px solid var(--giaotiep)}
+.lop-body.preielts{border-color:var(--preielts-border);border-left:5px solid var(--preielts)}.lop-body.ielts{border-color:var(--ielts-border);border-left:5px solid var(--ielts)}
 
 .progress-wrap{padding:10px 16px 12px;border-bottom:1px solid var(--border)}
 .progress-track{height:6px;border-radius:3px;background:#f0f0f0;overflow:hidden;margin-top:6px}
@@ -1497,7 +1500,7 @@ function lopHTML(lop){
         '<div class="mini-stat"><div class="mini-num '+lop.loai+'">'+done+'</div><div class="mini-lbl">Đã học</div></div>'+
         '<div class="divv"></div>'+
         '<div class="mini-stat"><div class="mini-num '+lop.loai+'">'+remain+'</div><div class="mini-lbl">Còn lại</div></div>'+
-        (absent>0?'<div class="divv"></div><div class="mini-stat"><div class="mini-num" style="color:#FCA5A5">'+absent+'</div><div class="mini-lbl">Vắng</div></div>':'')+
+        (absent>0?'<div class="divv"></div><div class="mini-stat"><div class="mini-num" style="color:var(--red)">'+absent+'</div><div class="mini-lbl">Vắng</div></div>':'')+
         '<span class="chevron'+(isOpen?' open':'')+'">▼</span>'+
       '</div>'+
     '</div>'+
