@@ -657,7 +657,7 @@ body{background:var(--bg);color:var(--text);font-size:15px;min-height:100vh}
   <div id="panel-malop" class="panel">
     <div class="form-card">
       <div class="form-title">🏷️ Tạo mã lớp tự động</div>
-      <div class="form-desc">Sinh mã lớp từ các <b>lớp khai giảng dự kiến</b> của bạn (ngày KG, thứ học, giờ, giáo viên). App sẽ <b>hỏi lại trước khi tạo</b>. Sau khi tạo, bạn có thể <b>sửa từng mã</b> hoặc <b>xóa</b> khi không còn dùng. Danh sách này chỉ mình bạn thấy. Quy tắc sinh mã chỉnh ở tab <b>⚙️ Cấu hình</b>.</div>
+      <div class="form-desc">Mã lớp <b>tự động được đề xuất</b> mỗi khi bạn tạo lớp ở tab <b>➕ Thêm lớp</b> hoặc <b>🗓️ Khai giảng dự kiến</b> (app hỏi lại trước khi thêm, mã trùng sẽ bỏ qua). Bạn cũng có thể nhấn nút dưới để sinh mã hàng loạt từ các lớp dự kiến. Sau khi tạo: <b>sửa từng mã</b> hoặc <b>xóa</b> khi không còn dùng. Danh sách này chỉ mình bạn thấy. Quy tắc sinh mã chỉnh ở tab <b>⚙️ Cấu hình</b>.</div>
       <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
         <button class="btn prim" onclick="mlSinhTuDuKien()">✨ Sinh mã từ lớp dự kiến</button>
         <button class="btn" onclick="mlCopyAll()">📋 Copy tất cả</button>
@@ -1495,6 +1495,7 @@ window.themLop=async function(){
     document.getElementById('f-sobuoi').value='27';
     selDaysMain=[];renderDayPicker('day-picker-main',selDaysMain,'toggleDayMain');
     window.switchTab('ds');
+    mlOfferCode(lop);
   }
 };
 
@@ -1837,6 +1838,7 @@ window.dkLuu=async function(){
     setSyncStatus('ok');
     showToast(dkEditId?'💾 Đã cập nhật lớp dự kiến':'✅ Đã lưu lớp dự kiến');
     dkResetForm();
+    mlOfferCode(obj);
   }catch(e){setSyncStatus('err');showToast('❌ Lỗi lưu: '+e.message);}
 };
 function dkResetForm(){
@@ -1928,6 +1930,19 @@ async function mlSet(obj){
   if(!curUser)return false;
   try{await set(ref(db,'malop/'+curUser.key+'/'+obj.id),obj);return true;}
   catch(e){showToast('❌ Lỗi lưu mã: '+e.message);return false;}
+}
+/* Sinh mã cho 1 lớp vừa tạo (Thêm lớp / Lớp dự kiến) — hỏi lại trước khi thêm.
+   Nếu mã đã tồn tại thì bỏ qua im lặng (tránh trùng khi sửa lớp hoặc chuyển chính thức). */
+function mlOfferCode(d){
+  if(!curUser)return;
+  const code=genMaLop(d,malopCfg);
+  const exists=Object.values(malop||{}).some(m=>m.code===code);
+  if(exists)return;
+  showConfirm('🏷️ Tạo mã lớp','Mã lớp sinh từ lớp "'+(d.ten||'')+'" là:  '+code+'  — Thêm vào danh sách Mã lớp?','✨ Tạo mã',false,async()=>{
+    const id='ml_'+Date.now()+'_'+Math.floor(Math.random()*1000);
+    const ok=await mlSet({id,code,note:d.ten||'',order:Object.keys(malop||{}).length,created:Date.now(),fromDK:d.id||''});
+    if(ok)showToast('✅ Đã thêm mã '+code);
+  });
 }
 window.mlSinhTuDuKien=function(){
   if(!curUser)return;
