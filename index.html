@@ -320,6 +320,20 @@ body{background:var(--bg);color:var(--text);font-size:15px;min-height:100vh}
 .dk-dates{font-size:13px;font-weight:700;white-space:nowrap}
 .dk-meta{font-size:12px;color:var(--text3);margin-top:4px;line-height:1.7}
 .dk-actions{display:flex;gap:6px;margin-top:10px;flex-wrap:wrap}
+/* ===== MÃ LỚP ===== */
+.ml-hint{font-size:12px;color:var(--text3);margin-top:10px;line-height:1.6}
+.ml-card{background:#fff;border:1px solid var(--border);border-left:4px solid var(--accent);border-radius:10px;padding:12px 14px;margin-bottom:8px;display:flex;align-items:center;gap:10px;flex-wrap:wrap;box-shadow:0 1px 3px rgba(0,0,0,.05)}
+.ml-code{font-family:'Courier New',monospace;font-size:15px;font-weight:700;color:var(--text);flex:1;min-width:180px;word-break:break-all}
+.ml-note-txt{font-size:12px;color:var(--text3);width:100%}
+.ml-acts{display:flex;gap:6px;flex-wrap:wrap}
+/* ===== CẤU HÌNH ===== */
+.cfg-note{font-size:12px;color:var(--text3);line-height:1.6}
+.cfg-note code{background:var(--bg2,#f1f5f9);padding:1px 5px;border-radius:4px;font-size:11px;color:var(--accent)}
+.cfg-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:10px}
+.cfg-cell{display:flex;align-items:center;gap:8px;background:#fff;border:1px solid var(--border);border-radius:8px;padding:8px 10px}
+.cfg-cell label{font-size:12px;font-weight:600;color:var(--text);flex:1;min-width:0}
+.cfg-cell input{width:82px;flex:none;padding:6px 8px;border:1px solid var(--border);border-radius:6px;font-size:13px;font-weight:700}
+.cfg-preview{font-family:'Courier New',monospace;font-size:15px;font-weight:700;color:var(--accent);background:var(--bg2,#f8fafc);border:1px dashed var(--border);border-radius:8px;padding:12px 14px;word-break:break-all}
 .gantt-card{background:#fff;border:1px solid var(--border);border-radius:12px;padding:18px 16px;margin-bottom:16px;overflow-x:auto}
 .gantt-inner{min-width:560px}
 .g-months{display:flex;margin-left:150px;border-bottom:1px solid var(--border);margin-bottom:8px}
@@ -477,6 +491,7 @@ body{background:var(--bg);color:var(--text);font-size:15px;min-height:100vh}
 <div class="tabs-wrap">
   <div class="tabs">
     <div class="tab active" id="tab-homnay" onclick="switchTab('homnay')">☀️ Hôm nay</div>
+    <div class="tab" id="tab-malop" onclick="switchTab('malop')">🏷️ Mã lớp</div>
     <div class="tab" id="tab-ds" onclick="switchTab('ds')">📋 Danh sách lớp</div>
     <div class="tab" id="tab-them" onclick="switchTab('them')">➕ Thêm lớp</div>
     <div class="tab" id="tab-dukien" onclick="switchTab('dukien')">🗓️ Khai giảng dự kiến</div>
@@ -484,6 +499,7 @@ body{background:var(--bg);color:var(--text);font-size:15px;min-height:100vh}
     <div class="tab" id="tab-cal" onclick="switchTab('cal')">📅 Lịch tháng</div>
     <div class="tab" id="tab-ct" onclick="switchTab('ct')">📚 Chương trình</div>
     <div class="tab" id="tab-admin" onclick="switchTab('admin')" style="display:none">⚙️ Quản trị</div>
+    <div class="tab" id="tab-cfg" onclick="switchTab('cfg')">⚙️ Cấu hình</div>
   </div>
 </div>
 
@@ -634,6 +650,79 @@ body{background:var(--bg);color:var(--text);font-size:15px;min-height:100vh}
       <span class="empty-icon">🗓️</span>
       <div class="empty-title">Chưa có lớp dự kiến nào</div>
       <div class="empty-desc">Điền form phía trên để xếp lịch khai giảng cho các lớp sắp tới.<br>App sẽ tự tính ngày kết thúc và vẽ tổng quan thời gian.</div>
+    </div>
+  </div>
+
+  <!-- MÃ LỚP -->
+  <div id="panel-malop" class="panel">
+    <div class="form-card">
+      <div class="form-title">🏷️ Tạo mã lớp tự động</div>
+      <div class="form-desc">Sinh mã lớp từ các <b>lớp khai giảng dự kiến</b> của bạn (ngày KG, thứ học, giờ, giáo viên). App sẽ <b>hỏi lại trước khi tạo</b>. Sau khi tạo, bạn có thể <b>sửa từng mã</b> hoặc <b>xóa</b> khi không còn dùng. Danh sách này chỉ mình bạn thấy. Quy tắc sinh mã chỉnh ở tab <b>⚙️ Cấu hình</b>.</div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+        <button class="btn prim" onclick="mlSinhTuDuKien()">✨ Sinh mã từ lớp dự kiến</button>
+        <button class="btn" onclick="mlCopyAll()">📋 Copy tất cả</button>
+        <button class="btn del" id="ml-clear-btn" onclick="mlXoaHet()">🗑 Xóa tất cả</button>
+      </div>
+      <div class="ml-hint" id="ml-hint"></div>
+    </div>
+
+    <div class="form-card">
+      <div class="form-title" style="font-size:15px">➕ Thêm / sửa mã thủ công</div>
+      <div class="form-grid g2">
+        <div class="fld"><label>Mã lớp</label><input id="ml-input" type="text" placeholder="Vd: A1_220726_T246_19h45_C.Vy" maxlength="120"></div>
+        <div class="fld"><label>Ghi chú (tùy chọn)</label><input id="ml-note" type="text" placeholder="Vd: lớp cô Vy sáng" maxlength="120"></div>
+      </div>
+      <div class="fld-err" id="ml-err"></div>
+      <div class="row-btns">
+        <button class="btn" id="ml-cancel-btn" style="display:none" onclick="mlHuySua()">Hủy sửa</button>
+        <button class="btn prim" id="ml-save-btn" onclick="mlLuuThuCong()">💾 Lưu mã</button>
+      </div>
+    </div>
+
+    <div id="ml-list"></div>
+    <div id="ml-empty" class="empty-state" style="display:none">
+      <span class="empty-icon">🏷️</span>
+      <div class="empty-title">Chưa có mã lớp nào</div>
+      <div class="empty-desc">Nhấn <b>"✨ Sinh mã từ lớp dự kiến"</b> để tạo mã cho các lớp sắp khai giảng,<br>hoặc thêm mã thủ công ở ô phía trên.</div>
+    </div>
+  </div>
+
+  <!-- CẤU HÌNH MÃ -->
+  <div id="panel-cfg" class="panel">
+    <div class="form-card">
+      <div class="form-title">⚙️ Cấu hình quy tắc sinh mã lớp</div>
+      <div class="form-desc">Mọi quy tắc trước đây cố định giờ đã đưa vào đây để bạn tự chỉnh. Thay đổi được lưu chung (mọi giáo viên cùng dùng 1 bộ quy tắc). Nhấn <b>Lưu cấu hình</b> sau khi sửa.</div>
+
+      <div class="sec-label">Mẫu ghép mã (template)</div>
+      <div class="fld"><input id="cfg-template" type="text" placeholder="{prefix}{sep}{ngay}{sep}{thu}{sep}{gio}{sep}{gv}"></div>
+      <div class="cfg-note">Token dùng được: <code>{prefix}</code> (mã loại lớp) · <code>{ngay}</code> (DDMMYY) · <code>{thu}</code> (T246...) · <code>{gio}</code> (giờ bắt đầu) · <code>{gv}</code> (viết tắt GV) · <code>{sep}</code> (ký tự nối)</div>
+
+      <div class="form-grid g2" style="margin-top:14px">
+        <div class="fld"><label>Ký tự nối (sep)</label><input id="cfg-sep" type="text" maxlength="3" placeholder="_"></div>
+        <div class="fld"><label>Định dạng giờ</label>
+          <select id="cfg-gio">
+            <option value="2">Luôn 2 chữ số (09h00)</option>
+            <option value="raw">Giữ nguyên (9h00)</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="sec-label">Mã tiền tố theo loại lớp</div>
+      <div class="cfg-note" style="margin-bottom:8px">Chỉnh mã cho từng loại lớp. Loại lớp mới thêm trong hệ thống sẽ tự hiện ở đây để bạn đặt mã.</div>
+      <div id="cfg-prefix-grid" class="cfg-grid"></div>
+
+      <div class="sec-label">Viết tắt tên giáo viên</div>
+      <div class="cfg-note" style="margin-bottom:8px">Dùng thay cho tên đầy đủ trong mã lớp.</div>
+      <div id="cfg-gv-grid" class="cfg-grid"></div>
+
+      <div class="sec-label">Xem thử</div>
+      <div class="cfg-preview" id="cfg-preview">—</div>
+
+      <div class="fld-err" id="cfg-err"></div>
+      <div class="row-btns">
+        <button class="btn" onclick="cfgReset()">↩︎ Khôi phục mặc định</button>
+        <button class="btn prim" onclick="cfgLuu()">💾 Lưu cấu hình</button>
+      </div>
     </div>
   </div>
 
@@ -849,8 +938,21 @@ const LOAI_BGC={starter:'#FFFBEB',basic:'#F5F0FF',complete:'#FFF1F1',other:'#F0F
 const COLOR_DOT={starter:'#B8860B',basic:'#6B21A8',complete:'#B91C1C',other:'#1E6B4A',phatam:'#0369A1',giaotiep:'#9A3412',preielts:'#6D28D9',ielts:'#0F766E'};
 const GV_CLASS={'Cô Vy':'vy','Thầy Khuê':'khue','Thầy Nam':'nam'};
 
+/* ===== MÃ LỚP — CẤU HÌNH MẶC ĐỊNH ===== */
+function defaultMalopCfg(){
+  return {
+    prefix:{starter:'A1',basic:'B1',complete:'C1',other:'X1',phatam:'IPA',giaotiep:'GT',preielts:'P1',ielts:'I1'},
+    gvAbbr:{'Cô Vy':'C.Vy','Thầy Khuê':'T.Khuê','Thầy Nam':'T.Nam','Khác':'GV'},
+    gioFormat:'2',
+    sep:'_',
+    template:'{prefix}{sep}{ngay}{sep}{thu}{sep}{gio}{sep}{gv}'
+  };
+}
+const GV_LIST=['Cô Vy','Thầy Khuê','Thầy Nam','Khác'];
+
 /* ===== STATE ===== */
 let lops=[], chuongTrinh={}, users={}, dukien={};
+let malop={}, malopCfg=defaultMalopCfg(), malopUnsub=null;
 LOAI_KEYS.forEach(k=>chuongTrinh[k]=[]);
 let selDaysMain=[], selDaysDK=[], curLoai='complete', curLoaiDK='complete', curCT='starter';
 let selDaysEdit=[], curLoaiEdit='complete', dsStatus='';
@@ -1141,11 +1243,17 @@ function startSession(key,silent){
     dukien=snap.val()||{};
     renderDuKien();
   });
+  if(malopUnsub)malopUnsub();
+  malopUnsub=onValue(ref(db,'malop/'+key),(snap)=>{
+    malop=snap.val()||{};
+    if(isActive('malop'))renderMalop();
+  });
   if(!silent)showToast('👋 Xin chào, '+curUser.name+'!');
 }
 window.doLogout=function(auto){
   if(dukienUnsub){dukienUnsub();dukienUnsub=null;}
-  curUser=null;dukien={};selAcc=null;
+  if(malopUnsub){malopUnsub();malopUnsub=null;}
+  curUser=null;dukien={};malop={};selAcc=null;
   updateAdminTab();
   lsSet('tk_session',null);
   document.getElementById('user-chip').style.display='none';
@@ -1222,10 +1330,70 @@ onValue(ctRef,(snap)=>{
   if(isActive('ct'))renderCTList();
 });
 
+/* Cấu hình sinh mã (dùng chung mọi giáo viên) */
+onValue(ref(db,'malopcfg'),(snap)=>{
+  const active=document.activeElement;
+  if(active&&active.closest&&active.closest('#panel-cfg'))return; // đang gõ dở
+  const v=snap.val();
+  const def=defaultMalopCfg();
+  malopCfg=v?{
+    prefix:Object.assign({},def.prefix,v.prefix||{}),
+    gvAbbr:Object.assign({},def.gvAbbr,v.gvAbbr||{}),
+    gioFormat:v.gioFormat||def.gioFormat,
+    sep:(v.sep!=null?v.sep:def.sep),
+    template:v.template||def.template
+  }:def;
+  if(isActive('cfg'))renderCfgForm();
+  if(isActive('malop'))renderMalop();
+});
+
 /* ===== TABS ===== */
+/* ===== MÃ LỚP — GENERATOR HELPERS ===== */
+function mlFmtGio(hhmm,mode){
+  if(!hhmm)return '';
+  const m=String(hhmm).match(/^(\d{1,2}):(\d{2})$/);
+  if(!m)return String(hhmm).replace(':','h');
+  let h=m[1];const mi=m[2];
+  if(mode==='2')h=h.padStart(2,'0');
+  return h+'h'+mi;
+}
+function mlFmtNgay(ymd){
+  if(!ymd)return '??????';
+  const m=String(ymd).match(/^(\d{4})-(\d{2})-(\d{2})$/);
+  if(!m)return '??????';
+  return m[3]+m[2]+m[1].slice(2);
+}
+function mlFmtThu(thuHoc){
+  const arr=[...(thuHoc||[])].sort((a,b)=>a-b);
+  if(arr.length===0)return 'T?';
+  const hasCN=arr.includes(0), hasT7=arr.includes(6);
+  const weekdayNums=arr.filter(d=>d>=1&&d<=5).map(d=>d+1);
+  if((hasT7||hasCN)&&weekdayNums.length===0){
+    const parts=[];if(hasT7)parts.push('T7');if(hasCN)parts.push('CN');return parts.join('-');
+  }
+  let code='T'+weekdayNums.join('');
+  if(hasT7)code+='-T7';if(hasCN)code+='-CN';
+  return code;
+}
+function genMaLop(d,cfg){
+  cfg=cfg||defaultMalopCfg();
+  const tk={
+    prefix:(cfg.prefix&&cfg.prefix[d.loai])||String(d.loai||'').toUpperCase().slice(0,2)||'?',
+    ngay:mlFmtNgay(d.ngay),
+    thu:mlFmtThu(d.thuHoc),
+    gio:mlFmtGio(d.gioBD,cfg.gioFormat),
+    gv:(cfg.gvAbbr&&cfg.gvAbbr[d.gv])||(cfg.gvAbbr&&cfg.gvAbbr['Khác'])||'GV',
+    sep:cfg.sep||'_'
+  };
+  return (cfg.template||defaultMalopCfg().template)
+    .replace(/\{prefix\}/g,tk.prefix).replace(/\{ngay\}/g,tk.ngay)
+    .replace(/\{thu\}/g,tk.thu).replace(/\{gio\}/g,tk.gio)
+    .replace(/\{gv\}/g,tk.gv).replace(/\{sep\}/g,tk.sep);
+}
+
 window.switchTab=function(id){
   if(id==='admin'&&!isAdmin())id='homnay';
-  ['homnay','ds','them','dukien','tuan','cal','ct','admin'].forEach(t=>{
+  ['homnay','ds','them','dukien','malop','cfg','tuan','cal','ct','admin'].forEach(t=>{
     document.getElementById('tab-'+t).classList.toggle('active',t===id);
     document.getElementById('panel-'+t).classList.toggle('active',t===id);
   });
@@ -1235,6 +1403,8 @@ window.switchTab=function(id){
   if(id==='tuan')renderTuan();
   if(id==='ct')renderCTList();
   if(id==='dukien'){renderDuKien();window.dkCompute();}
+  if(id==='malop')renderMalop();
+  if(id==='cfg')renderCfgForm();
   if(id==='admin')renderAdmin();
 };
 
@@ -1722,6 +1892,197 @@ window.dkChot=function(id){
       showToast('🎉 Đã tạo lớp chính thức '+d.ten);
       window.switchTab('ds');
     }
+  });
+};
+
+/* ===== MÃ LỚP — RENDER & ACTIONS ===== */
+let mlEditId=null;
+function renderMalop(){
+  if(!isActive('malop'))return;
+  const listEl=document.getElementById('ml-list');
+  const emEl=document.getElementById('ml-empty');
+  const hintEl=document.getElementById('ml-hint');
+  const nDK=Object.keys(dukien||{}).length;
+  hintEl.innerHTML=nDK>0
+    ?'📌 Bạn đang có <b>'+nDK+'</b> lớp dự kiến — nhấn nút trên để sinh mã cho các lớp này.'
+    :'💡 Chưa có lớp dự kiến nào. Vào tab <b>🗓️ Khai giảng dự kiến</b> để tạo lớp trước, rồi quay lại đây sinh mã.';
+  const items=Object.values(malop||{});
+  items.sort((a,b)=>(a.order||0)-(b.order||0)||(a.created||0)-(b.created||0));
+  document.getElementById('ml-clear-btn').style.display=items.length?'inline-flex':'none';
+  if(items.length===0){listEl.innerHTML='';emEl.style.display='block';return;}
+  emEl.style.display='none';
+  listEl.innerHTML='<div class="form-title" style="margin:4px 2px 12px;font-size:15px">🏷️ Danh sách mã lớp ('+items.length+')</div>'+
+    items.map(m=>
+      '<div class="ml-card">'+
+        '<div class="ml-code">'+esc(m.code)+'</div>'+
+        '<div class="ml-acts">'+
+          '<button class="btn sm" onclick="mlCopy(\''+esc(m.id)+'\')">📋 Copy</button>'+
+          '<button class="btn sm" onclick="mlSua(\''+esc(m.id)+'\')">✏️ Sửa</button>'+
+          '<button class="btn sm del" onclick="mlXoa(\''+esc(m.id)+'\')">🗑 Xóa</button>'+
+        '</div>'+
+        (m.note?'<div class="ml-note-txt">📝 '+esc(m.note)+'</div>':'')+
+      '</div>'
+    ).join('');
+}
+async function mlSet(obj){
+  if(!curUser)return false;
+  try{await set(ref(db,'malop/'+curUser.key+'/'+obj.id),obj);return true;}
+  catch(e){showToast('❌ Lỗi lưu mã: '+e.message);return false;}
+}
+window.mlSinhTuDuKien=function(){
+  if(!curUser)return;
+  const dkItems=Object.values(dukien||{});
+  if(dkItems.length===0){showToast('⚠️ Chưa có lớp dự kiến nào để sinh mã.');return;}
+  dkItems.sort((a,b)=>a.ngay<b.ngay?-1:1);
+  const existing=new Set(Object.values(malop||{}).map(m=>m.code));
+  const preview=dkItems.map(d=>genMaLop(d,malopCfg));
+  const newOnes=preview.filter(c=>!existing.has(c));
+  const dupCount=preview.length-newOnes.length;
+  const listTxt=dkItems.map((d,i)=>'• '+preview[i]+(existing.has(preview[i])?'  (đã có)':'')).join('\n');
+  const msg='Sẽ tạo mã cho '+dkItems.length+' lớp dự kiến:\n\n'+listTxt+
+    '\n\n'+(dupCount>0?('→ '+newOnes.length+' mã mới sẽ được thêm, '+dupCount+' mã đã tồn tại sẽ bỏ qua.'):('→ Thêm '+newOnes.length+' mã mới.'));
+  showConfirm('Xác nhận sinh mã lớp',msg,'✨ Tạo mã',false,async()=>{
+    let base=Object.keys(malop||{}).length, added=0;
+    for(let i=0;i<dkItems.length;i++){
+      const code=preview[i];
+      if(existing.has(code))continue;
+      const id='ml_'+Date.now()+'_'+i+'_'+Math.floor(Math.random()*1000);
+      const ok=await mlSet({id,code,note:esc(dkItems[i].ten||''),order:base+added,created:Date.now(),fromDK:dkItems[i].id});
+      if(ok){existing.add(code);added++;}
+    }
+    setSyncStatus('ok');
+    showToast(added>0?('✅ Đã tạo '+added+' mã lớp'):'ℹ️ Không có mã mới (tất cả đã tồn tại)');
+  });
+};
+window.mlLuuThuCong=async function(){
+  if(!curUser)return;
+  const inp=document.getElementById('ml-input');
+  const code=inp.value.trim();
+  const note=document.getElementById('ml-note').value.trim();
+  if(!code){showErr('ml-err','Vui lòng nhập mã lớp.');return;}
+  if(code.length>120){showErr('ml-err','Mã lớp tối đa 120 ký tự.');return;}
+  showErr('ml-err',null);
+  const id=mlEditId||('ml_'+Date.now()+'_'+Math.floor(Math.random()*1000));
+  const old=malop[id];
+  const order=old?old.order:Object.keys(malop||{}).length;
+  setSyncStatus('saving');
+  const ok=await mlSet({id,code,note,order,created:old?old.created:Date.now(),fromDK:old?(old.fromDK||''):''});
+  if(ok){setSyncStatus('ok');showToast(mlEditId?'💾 Đã cập nhật mã':'✅ Đã thêm mã');mlHuySua();}
+};
+window.mlSua=function(id){
+  const m=malop[id];if(!m)return;
+  mlEditId=id;
+  document.getElementById('ml-input').value=m.code;
+  document.getElementById('ml-note').value=m.note||'';
+  document.getElementById('ml-save-btn').textContent='💾 Cập nhật mã';
+  document.getElementById('ml-cancel-btn').style.display='inline-flex';
+  showErr('ml-err',null);
+  document.getElementById('ml-input').focus();
+  window.scrollTo({top:0,behavior:'smooth'});
+};
+window.mlHuySua=function(){
+  mlEditId=null;
+  document.getElementById('ml-input').value='';
+  document.getElementById('ml-note').value='';
+  document.getElementById('ml-save-btn').textContent='💾 Lưu mã';
+  document.getElementById('ml-cancel-btn').style.display='none';
+  showErr('ml-err',null);
+};
+window.mlXoa=function(id){
+  const m=malop[id];if(!m||!curUser)return;
+  showConfirm('Xóa mã lớp','Xóa mã "'+m.code+'"?','🗑 Xóa',true,async()=>{
+    try{await remove(ref(db,'malop/'+curUser.key+'/'+id));
+      if(mlEditId===id)mlHuySua();
+      showToast('🗑 Đã xóa mã');
+    }catch(e){showToast('❌ Lỗi xóa: '+e.message);}
+  });
+};
+window.mlXoaHet=function(){
+  if(!curUser)return;
+  const n=Object.keys(malop||{}).length;
+  if(n===0)return;
+  showConfirm('Xóa tất cả mã lớp','Xóa toàn bộ '+n+' mã lớp? Không thể hoàn tác.','🗑 Xóa tất cả',true,async()=>{
+    try{await remove(ref(db,'malop/'+curUser.key));mlHuySua();showToast('🗑 Đã xóa tất cả mã');}
+    catch(e){showToast('❌ Lỗi xóa: '+e.message);}
+  });
+};
+function mlCopyText(txt){
+  if(navigator.clipboard&&navigator.clipboard.writeText){
+    navigator.clipboard.writeText(txt).then(()=>showToast('📋 Đã copy')).catch(()=>mlCopyFallback(txt));
+  }else mlCopyFallback(txt);
+}
+function mlCopyFallback(txt){
+  const ta=document.createElement('textarea');ta.value=txt;ta.style.position='fixed';ta.style.opacity='0';
+  document.body.appendChild(ta);ta.select();
+  try{document.execCommand('copy');showToast('📋 Đã copy');}catch(e){showToast('⚠️ Không copy được, hãy copy thủ công');}
+  document.body.removeChild(ta);
+}
+window.mlCopy=function(id){const m=malop[id];if(m)mlCopyText(m.code);};
+window.mlCopyAll=function(){
+  const items=Object.values(malop||{});
+  if(items.length===0){showToast('⚠️ Chưa có mã nào để copy.');return;}
+  items.sort((a,b)=>(a.order||0)-(b.order||0)||(a.created||0)-(b.created||0));
+  mlCopyText(items.map(m=>m.code).join('\n'));
+};
+
+/* ===== CẤU HÌNH MÃ — RENDER & ACTIONS ===== */
+function renderCfgForm(){
+  if(!isActive('cfg'))return;
+  document.getElementById('cfg-template').value=malopCfg.template||'';
+  document.getElementById('cfg-sep').value=malopCfg.sep!=null?malopCfg.sep:'_';
+  document.getElementById('cfg-gio').value=malopCfg.gioFormat||'2';
+  // prefix theo mọi loại lớp hiện có + loại đã cấu hình
+  const loaiSet=[...new Set([...LOAI_KEYS,...Object.keys(malopCfg.prefix||{})])];
+  document.getElementById('cfg-prefix-grid').innerHTML=loaiSet.map(k=>{
+    const ten=LOAI_TEN[k]||k;
+    const val=(malopCfg.prefix&&malopCfg.prefix[k])||'';
+    return '<div class="cfg-cell"><label>'+esc(ten)+'</label>'+
+      '<input type="text" maxlength="8" data-cfg-prefix="'+esc(k)+'" value="'+esc(val)+'" oninput="cfgPreview()"></div>';
+  }).join('');
+  const gvSet=[...new Set([...GV_LIST,...Object.keys(malopCfg.gvAbbr||{})])];
+  document.getElementById('cfg-gv-grid').innerHTML=gvSet.map(g=>{
+    const val=(malopCfg.gvAbbr&&malopCfg.gvAbbr[g])||'';
+    return '<div class="cfg-cell"><label>'+esc(g)+'</label>'+
+      '<input type="text" maxlength="12" data-cfg-gv="'+esc(g)+'" value="'+esc(val)+'" oninput="cfgPreview()"></div>';
+  }).join('');
+  document.getElementById('cfg-template').oninput=cfgPreview;
+  document.getElementById('cfg-sep').oninput=cfgPreview;
+  document.getElementById('cfg-gio').onchange=cfgPreview;
+  showErr('cfg-err',null);
+  cfgPreview();
+}
+function cfgReadForm(){
+  const cfg=defaultMalopCfg();
+  cfg.template=document.getElementById('cfg-template').value.trim()||defaultMalopCfg().template;
+  cfg.sep=document.getElementById('cfg-sep').value;
+  cfg.gioFormat=document.getElementById('cfg-gio').value;
+  cfg.prefix={};cfg.gvAbbr={};
+  document.querySelectorAll('[data-cfg-prefix]').forEach(inp=>{
+    const k=inp.getAttribute('data-cfg-prefix');const v=inp.value.trim();if(v)cfg.prefix[k]=v;
+  });
+  document.querySelectorAll('[data-cfg-gv]').forEach(inp=>{
+    const g=inp.getAttribute('data-cfg-gv');const v=inp.value.trim();if(v)cfg.gvAbbr[g]=v;
+  });
+  return cfg;
+}
+window.cfgPreview=function(){
+  const cfg=cfgReadForm();
+  const sample={loai:'starter',ngay:'2026-07-22',thuHoc:[1,3,5],gioBD:'19:45',gv:'Cô Vy'};
+  document.getElementById('cfg-preview').textContent=genMaLop(sample,cfg)+'   (ví dụ: Starter · T246 · 22/07 · 19h45 · Cô Vy)';
+};
+window.cfgLuu=async function(){
+  const cfg=cfgReadForm();
+  if(!cfg.template.includes('{prefix}')&&!cfg.template.includes('{ngay}')&&!cfg.template.includes('{gv}')){
+    showErr('cfg-err','Mẫu ghép mã phải chứa ít nhất một token, ví dụ {prefix} hoặc {ngay}.');return;
+  }
+  showErr('cfg-err',null);
+  setSyncStatus('saving');
+  try{await set(ref(db,'malopcfg'),cfg);malopCfg=cfg;setSyncStatus('ok');showToast('💾 Đã lưu cấu hình mã lớp');}
+  catch(e){setSyncStatus('err');showToast('❌ Lỗi lưu cấu hình: '+e.message);}
+};
+window.cfgReset=function(){
+  showConfirm('Khôi phục mặc định','Đặt lại toàn bộ quy tắc sinh mã về mặc định? Bạn vẫn cần nhấn "Lưu cấu hình" để áp dụng.','↩︎ Khôi phục',false,()=>{
+    malopCfg=defaultMalopCfg();renderCfgForm();showToast('↩︎ Đã nạp cấu hình mặc định — nhấn Lưu để áp dụng');
   });
 };
 
