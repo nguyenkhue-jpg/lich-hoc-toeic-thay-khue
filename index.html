@@ -1319,15 +1319,14 @@ function mlFmtNgay(ymd){
   return m[3]+m[2]+m[1].slice(2);
 }
 function mlFmtThu(thuHoc){
-  const arr=[...(thuHoc||[])].sort((a,b)=>a-b);
+  const arr=[...new Set(thuHoc||[])].sort((a,b)=>a-b);
   if(arr.length===0)return 'T?';
-  const hasCN=arr.includes(0), hasT7=arr.includes(6);
-  const weekdayNums=arr.filter(d=>d>=1&&d<=5).map(d=>d+1);
-  if((hasT7||hasCN)&&weekdayNums.length===0){
-    const parts=[];if(hasT7)parts.push('T7');if(hasCN)parts.push('CN');return parts.join('-');
-  }
-  let code='T'+weekdayNums.join('');
-  if(hasT7)code+='-T7';if(hasCN)code+='-CN';
+  const hasCN=arr.includes(0);
+  // T2..T7 gộp thành chuỗi số: [T3,T5,T7] -> T357. Chỉ CN tách bằng gạch: T7-CN
+  const nums=arr.filter(d=>d>=1&&d<=6).map(d=>d+1);
+  if(nums.length===0)return hasCN?'CN':'T?';
+  let code='T'+nums.join('');
+  if(hasCN)code+='-CN';
   return code;
 }
 function genMaLop(d,cfg){
