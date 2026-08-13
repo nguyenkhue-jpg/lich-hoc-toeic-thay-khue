@@ -412,6 +412,31 @@ body{background:var(--bg);color:var(--text);font-size:15px;min-height:100vh}
 .warn-card{background:#FFFBEB;border:1px solid #F5D060;border-radius:12px;padding:12px 16px;margin-bottom:10px;display:flex;align-items:center;gap:10px;flex-wrap:wrap;font-size:13px;line-height:1.6}
 .warn-card .warn-ico{font-size:18px;flex-shrink:0}
 .warn-card .btn{margin-left:auto}
+.warn-card.expired{background:#FFF1F1;border-color:#F4A0A0}
+
+/* ===== LỚP HẾT HẠN ===== */
+.hh-card{background:#fff;border:1px solid var(--border);border-left:4px solid var(--navy);border-radius:12px;padding:14px 16px;margin-bottom:12px}
+.hh-card.done{opacity:.62;border-left-color:#16A34A}
+.hh-head{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:4px}
+.hh-ten{font-weight:800;font-size:14.5px}
+.hh-meta{font-size:12px;color:var(--text3);margin-bottom:10px}
+.hh-mocs{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:8px}
+.hh-moc{display:flex;align-items:center;gap:8px;background:#F8FAFC;border:1px solid var(--border);border-radius:10px;padding:9px 11px;font-size:12.5px;line-height:1.5}
+.hh-moc.overdue{background:#FFF1F1;border-color:#F4A0A0}
+.hh-moc.soon{background:#FFFBEB;border-color:#F5D060}
+.hh-moc.handled{background:#F0FDF4;border-color:#86EFCC}
+.hh-moc.handled .hh-moc-body{text-decoration:line-through;color:var(--text3)}
+.hh-moc input[type=checkbox]{width:17px;height:17px;flex-shrink:0;cursor:pointer;accent-color:#16A34A}
+.hh-moc-body{flex:1;min-width:0}
+.hh-moc-lbl{font-weight:700}
+.hh-pill{font-size:11px;font-weight:700;padding:2px 8px;border-radius:99px;white-space:nowrap;flex-shrink:0}
+.hh-pill.ok{background:#F1F5F9;color:#475569}
+.hh-pill.soon{background:#FEF9C3;color:#854D0E}
+.hh-pill.overdue{background:#FEE2E2;color:#B91C1C}
+.hh-pill.handled{background:#DCFCE7;color:#166534}
+.hh-empty{padding:36px;text-align:center;color:var(--text3);font-size:13px}
+.hh-sec-title{font-size:13px;font-weight:800;color:var(--text2);margin:18px 0 8px}
+.tab .tab-badge{display:inline-block;min-width:17px;padding:0 5px;margin-left:5px;background:#DC2626;color:#fff;border-radius:99px;font-size:10.5px;font-weight:800;line-height:17px;text-align:center;vertical-align:1px}
 .badge.note{background:#FEF3C7;color:#92400E;max-width:150px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .buoi-note-today{font-size:12px;color:#92400E;background:#FFFBEB;border-radius:6px;padding:4px 8px;margin-top:6px;display:inline-block}
 /* BỘ LỌC GV + NỘI DUNG SỔ XUỐNG (tab Hôm nay) */
@@ -496,6 +521,7 @@ body{background:var(--bg);color:var(--text);font-size:15px;min-height:100vh}
     <div class="tab" id="tab-dukien" onclick="switchTab('dukien')">🗓️ Khai giảng dự kiến</div>
     <div class="tab" id="tab-tuan" onclick="switchTab('tuan')">📊 Lịch tuần</div>
     <div class="tab" id="tab-cal" onclick="switchTab('cal')">📅 Lịch tháng</div>
+    <div class="tab" id="tab-hethan" onclick="switchTab('hethan')">⏳ Lớp hết hạn<span class="tab-badge" id="hethan-badge" style="display:none"></span></div>
     <div class="tab" id="tab-ct" onclick="switchTab('ct')">📚 Chương trình</div>
     <div class="tab" id="tab-admin" onclick="switchTab('admin')" style="display:none">⚙️ Quản trị</div>
     <div class="tab" id="tab-cfg" onclick="switchTab('cfg')">⚙️ Cấu hình</div>
@@ -734,6 +760,15 @@ body{background:var(--bg);color:var(--text);font-size:15px;min-height:100vh}
         <div class="cal-ev-title">Các buổi học trong tháng</div>
         <div id="cal-events"></div>
       </div>
+    </div>
+  </div>
+
+  <!-- LỚP HẾT HẠN -->
+  <div id="panel-hethan" class="panel">
+    <div class="form-card">
+      <div class="form-title">⏳ Quản lý lớp hết hạn</div>
+      <div class="form-desc">Theo dõi 3 mốc gỡ nội dung sau khi lớp kết thúc: <b>🎬 Video</b> (buổi cuối + 10 ngày) · <b>📑 Slide</b> (buổi cuối + 30 ngày) · <b>🗂️ Toàn bộ nội dung</b> (khai giảng + 6 tháng). Tick ✓ sau khi đã gỡ xong — trạng thái đồng bộ cho mọi giáo viên. App chỉ nhắc, <b>không tự xóa</b> dữ liệu.</div>
+      <div id="hethan-list"><div class="loading">⏳ Đang tải dữ liệu...</div></div>
     </div>
   </div>
 
@@ -1005,6 +1040,25 @@ function resortDates(lop){
   });
 }
 function isEnded(lop){const t=today0();return lop.ngayHoc.length>0&&!lop.ngayHoc.some(b=>!b.vang&&pd(b.date)>=t);}
+/* ===== LỚP HẾT HẠN: helper ===== */
+function addDays(d,n){const x=new Date(d);x.setDate(x.getDate()+n);x.setHours(0,0,0,0);return x;}
+function addMonths(d,n){const x=new Date(d);const day=x.getDate();x.setMonth(x.getMonth()+n);if(x.getDate()!==day)x.setDate(0);x.setHours(0,0,0,0);return x;}
+function lastValidDate(lop){const v=(lop.ngayHoc||[]).filter(b=>!b.vang);return v.length?pd(v[v.length-1].date):null;}
+// 3 mốc gỡ nội dung: video (buổi cuối +10 ngày), slide (buổi cuối +30 ngày), toàn bộ (khai giảng +6 tháng)
+function hethanMocs(lop){
+  const lv=lastValidDate(lop);
+  const kg=lop.ngay?pd(lop.ngay):null;
+  const hh=lop.hethan||{};
+  const m=[];
+  if(lv)m.push({key:'video',icon:'🎬',lbl:'Gỡ video bài giảng',date:addDays(lv,10),done:!!hh.video});
+  if(lv)m.push({key:'slide',icon:'📑',lbl:'Gỡ slide bài giảng',date:addDays(lv,30),done:!!hh.slide});
+  if(kg)m.push({key:'all',icon:'🗂️',lbl:'Gỡ toàn bộ nội dung khóa',date:addMonths(kg,6),done:!!hh.all});
+  return m;
+}
+// Số ngày còn lại tới mốc (âm = đã quá hạn)
+function mocDaysLeft(moc){return Math.round((moc.date-today0())/86400000);}
+// Mốc cần nhắc ở tab Hôm nay: quá hạn >= 1 ngày và chưa xử lý
+function hethanPending(lop){return hethanMocs(lop).filter(m=>!m.done&&mocDaysLeft(m)<=-1);}
 function remainOf(lop){const t=today0();return lop.ngayHoc.filter(b=>!b.vang&&pd(b.date)>=t).length;}
 function doneOf(lop){const t=today0();return lop.ngayHoc.filter(b=>!b.vang&&pd(b.date)<t).length;}
 function ymdStr(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');}
@@ -1294,9 +1348,11 @@ async function saveLop(lop){
 function renderAllVisible(){
   renderToday();
   renderDS();
+  updateHetHanBadge();
   if(isActive('cal'))renderCal();
   if(isActive('tuan'))renderTuan();
   if(isActive('dukien'))renderDuKien();
+  if(isActive('hethan'))renderHetHan();
   if(isActive('admin'))renderAdmin();
 }
 function isActive(id){const p=document.getElementById('panel-'+id);return p&&p.classList.contains('active');}
@@ -1418,11 +1474,12 @@ window.editAutoTen=editAutoTen;
 
 window.switchTab=function(id){
   if(id==='admin'&&!isAdmin())id='homnay';
-  ['homnay','ds','them','dukien','cfg','tuan','cal','ct','admin'].forEach(t=>{
+  ['homnay','ds','them','dukien','cfg','tuan','cal','hethan','ct','admin'].forEach(t=>{
     document.getElementById('tab-'+t).classList.toggle('active',t===id);
     document.getElementById('panel-'+t).classList.toggle('active',t===id);
   });
   if(id==='homnay')renderToday();
+  if(id==='hethan')renderHetHan();
   if(id==='ds')renderDS();
   if(id==='cal')renderCal();
   if(id==='tuan')renderTuan();
@@ -1589,6 +1646,12 @@ function renderToday(){
       warnHtml+='<div class="warn-card"><span class="warn-ico">⚠️</span><span>Lớp <b style="color:'+LOAI_MAIN[l.loai]+'">'+esc(l.ten)+'</b> chỉ còn <b>'+r+' buổi</b> — kết thúc '+kt+'.</span><button class="btn sm prim" onclick="dkTuLop(\''+l.id+'\')">🗓️ Xếp lớp kế tiếp</button></div>';
     }
   });
+  // Nhắc gỡ nội dung: mốc đã quá hạn >= 1 ngày và chưa xử lý
+  lops.filter(isEnded).forEach(l=>{
+    hethanPending(l).forEach(m=>{
+      warnHtml+='<div class="warn-card expired"><span class="warn-ico">'+m.icon+'</span><span><b>'+m.lbl+'</b> của lớp <b style="color:'+LOAI_MAIN[l.loai]+'">'+esc(l.ten)+'</b> đã hết hạn từ <b>'+fmtDate(m.date)+'</b> ('+(-mocDaysLeft(m))+' ngày trước).</span><button class="btn sm prim" onclick="switchTab(\'hethan\')">⏳ Xem chi tiết</button></div>';
+    });
+  });
   if(items.length===0){
     el.innerHTML=dash+warnHtml+'<div class="empty-state"><span class="empty-icon">🌤️</span><div class="empty-title">Hôm nay không có lớp nào</div><div class="empty-desc">Xem tab <b>Lịch tuần</b> để biết các buổi sắp tới.</div></div>';
     return;
@@ -1623,6 +1686,77 @@ function renderToday(){
       '<button class="btn-vang" onclick="toggleVang(\''+it.lop.id+'\','+it.i+')" title="Đánh dấu lớp nghỉ hôm nay">✕</button>'+
     '</div>';
   }).join('');
+}
+
+/* ===== LỚP HẾT HẠN ===== */
+function mocPill(m){
+  const d=mocDaysLeft(m);
+  if(m.done)return'<span class="hh-pill handled">✓ Đã xử lý</span>';
+  if(d>7)return'<span class="hh-pill ok">Còn '+d+' ngày</span>';
+  if(d>0)return'<span class="hh-pill soon">Còn '+d+' ngày</span>';
+  if(d===0)return'<span class="hh-pill soon">Hết hạn hôm nay</span>';
+  return'<span class="hh-pill overdue">Quá hạn '+(-d)+' ngày</span>';
+}
+function mocCls(m){
+  if(m.done)return'handled';
+  const d=mocDaysLeft(m);
+  if(d<0)return'overdue';
+  if(d<=7)return'soon';
+  return'';
+}
+function renderHetHan(){
+  const el=document.getElementById('hethan-list');if(!el)return;
+  const ended=lops.filter(isEnded);
+  if(ended.length===0){
+    el.innerHTML='<div class="hh-empty">🌱 Chưa có lớp nào kết thúc — chưa có gì cần gỡ.</div>';
+    return;
+  }
+  // Sắp xếp: lớp còn mốc chưa xử lý lên trước, theo mốc gần nhất
+  const rows=ended.map(l=>{
+    const mocs=hethanMocs(l);
+    const pend=mocs.filter(m=>!m.done);
+    const nearest=pend.length?Math.min(...pend.map(mocDaysLeft)):Infinity;
+    return{l,mocs,pend,nearest};
+  });
+  rows.sort((a,b)=>a.nearest-b.nearest);
+  const active=rows.filter(r=>r.pend.length>0);
+  const done=rows.filter(r=>r.pend.length===0);
+  const card=(r)=>{
+    const l=r.l;
+    const lv=lastValidDate(l);
+    const kg=l.ngay?pd(l.ngay):null;
+    return'<div class="hh-card'+(r.pend.length===0?' done':'')+'" style="border-left-color:'+(r.pend.length===0?'#16A34A':LOAI_MAIN[l.loai])+'">'+
+      '<div class="hh-head"><span class="hh-ten" style="color:'+LOAI_MAIN[l.loai]+'">'+LOAI_ICON[l.loai]+' '+esc(l.ten)+'</span>'+
+      '<span class="gv-tag '+(GV_CLASS[l.gv]||'other-gv')+'">'+esc(l.gv)+'</span></div>'+
+      '<div class="hh-meta">Khai giảng: <b>'+(kg?fmtDate(kg):'—')+'</b> · Buổi cuối: <b>'+(lv?fmtDate(lv):'—')+'</b></div>'+
+      '<div class="hh-mocs">'+r.mocs.map(m=>
+        '<label class="hh-moc '+mocCls(m)+'"><input type="checkbox" '+(m.done?'checked':'')+' onchange="toggleHetHan(\''+l.id+'\',\''+m.key+'\',this.checked)">'+
+        '<span class="hh-moc-body"><span class="hh-moc-lbl">'+m.icon+' '+m.lbl+'</span><br>Hạn: '+fmtDate(m.date)+'</span>'+mocPill(m)+'</label>'
+      ).join('')+'</div>'+
+    '</div>';
+  };
+  let html='';
+  if(active.length)html+='<div class="hh-sec-title" style="margin-top:0">🔔 Cần theo dõi ('+active.length+' lớp)</div>'+active.map(card).join('');
+  else html+='<div class="hh-empty">🎉 Mọi lớp đã kết thúc đều được xử lý xong.</div>';
+  if(done.length)html+='<div class="hh-sec-title">✅ Đã xử lý xong ('+done.length+' lớp)</div>'+done.map(card).join('');
+  el.innerHTML=html;
+}
+window.toggleHetHan=async function(id,key,val){
+  const l=lops.find(x=>x.id===id);if(!l)return;
+  if(!l.hethan)l.hethan={};
+  if(val)l.hethan[key]=true;else delete l.hethan[key];
+  if(Object.keys(l.hethan).length===0)delete l.hethan;
+  if(await saveLop(l)){
+    renderHetHan();updateHetHanBadge();renderToday();
+    showToast(val?'✓ Đã đánh dấu xử lý xong':'↺ Đã bỏ đánh dấu');
+  }else{renderHetHan();}
+};
+function updateHetHanBadge(){
+  const b=document.getElementById('hethan-badge');if(!b)return;
+  let n=0;
+  lops.filter(isEnded).forEach(l=>{n+=hethanPending(l).length;});
+  if(n>0){b.textContent=n;b.style.display='inline-block';}
+  else b.style.display='none';
 }
 
 /* ===== DANH SÁCH LỚP ===== */
