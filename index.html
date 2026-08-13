@@ -1050,9 +1050,9 @@ function hethanMocs(lop){
   const kg=lop.ngay?pd(lop.ngay):null;
   const hh=lop.hethan||{};
   const m=[];
-  if(lv)m.push({key:'video',icon:'🎬',lbl:'Gỡ video bài giảng',date:addDays(lv,10),done:!!hh.video});
-  if(lv)m.push({key:'slide',icon:'📑',lbl:'Gỡ slide bài giảng',date:addDays(lv,30),done:!!hh.slide});
-  if(kg)m.push({key:'all',icon:'🗂️',lbl:'Gỡ toàn bộ nội dung khóa',date:addMonths(kg,6),done:!!hh.all});
+  if(lv)m.push({key:'video',icon:'🎬',lbl:'Gỡ Video B.G',date:addDays(lv,10),done:!!hh.video});
+  if(lv)m.push({key:'slide',icon:'📑',lbl:'Gỡ Slide B.G',date:addDays(lv,30),done:!!hh.slide});
+  if(kg)m.push({key:'all',icon:'🗂️',lbl:'Gỡ hết nội dung',date:addMonths(kg,6),done:!!hh.all});
   return m;
 }
 // Số ngày còn lại tới mốc (âm = đã quá hạn)
@@ -1479,7 +1479,7 @@ window.switchTab=function(id){
     document.getElementById('panel-'+t).classList.toggle('active',t===id);
   });
   if(id==='homnay')renderToday();
-  if(id==='hethan')renderHetHan();
+  if(id==='hethan'){hethanOrder=null;renderHetHan();}
   if(id==='ds')renderDS();
   if(id==='cal')renderCal();
   if(id==='tuan')renderTuan();
@@ -1689,6 +1689,7 @@ function renderToday(){
 }
 
 /* ===== LỚP HẾT HẠN ===== */
+let hethanOrder=null; // thứ tự hiển thị — chốt lúc mở tab, giữ nguyên khi thao tác
 function mocPill(m){
   const d=mocDaysLeft(m);
   if(m.done)return'<span class="hh-pill handled">✓ Đã xử lý</span>';
@@ -1711,14 +1712,22 @@ function renderHetHan(){
     el.innerHTML='<div class="hh-empty">🌱 Chưa có lớp nào kết thúc — chưa có gì cần gỡ.</div>';
     return;
   }
-  // Sắp xếp: lớp còn mốc chưa xử lý lên trước, theo mốc gần nhất
   const rows=ended.map(l=>{
     const mocs=hethanMocs(l);
     const pend=mocs.filter(m=>!m.done);
     const nearest=pend.length?Math.min(...pend.map(mocDaysLeft)):Infinity;
     return{l,mocs,pend,nearest};
   });
-  rows.sort((a,b)=>a.nearest-b.nearest);
+  // Chỉ sắp xếp theo độ gấp khi MỞ tab (hethanOrder=null).
+  // Khi đang thao tác (tick checkbox / realtime sync), giữ nguyên vị trí để không mất dấu lớp.
+  if(!hethanOrder){
+    rows.sort((a,b)=>a.nearest-b.nearest);
+    hethanOrder=rows.map(r=>r.l.id);
+  }else{
+    const idx=id=>{const i=hethanOrder.indexOf(id);return i<0?1e9:i;};
+    rows.sort((a,b)=>{const d=idx(a.l.id)-idx(b.l.id);return d!==0?d:a.nearest-b.nearest;});
+    rows.forEach(r=>{if(!hethanOrder.includes(r.l.id))hethanOrder.push(r.l.id);});
+  }
   const active=rows.filter(r=>r.pend.length>0);
   const done=rows.filter(r=>r.pend.length===0);
   const card=(r)=>{
