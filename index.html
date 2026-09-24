@@ -1999,14 +1999,19 @@ function dkChotBtnState(id,busy){
     b.disabled=busy;b.textContent=busy?'Đang lưu...':'✓ Chuyển thành lớp chính thức';
   });
 }
+// Dấu vân tay nội dung lớp dự kiến (khóa sắp xếp cố định) — dùng để phát hiện bản đã bị sửa ở tab/thiết bị khác
+function dkFingerprint(d){return JSON.stringify(d,Object.keys(d).sort());}
 window.dkChot=function(id){
   if(dkChotBusy)return; // chặn bấm đúp khi đang lưu
-  const d=dukien[id];if(!d||!curUser)return;
-  showConfirm('Chuyển thành lớp chính thức','Tạo lớp chính thức "'+d.ten+'" (khai giảng '+fmtDate(parseYMD(d.ngay))+', '+d.sobuoi+' buổi)? Lớp sẽ hiện cho tất cả giáo viên và nhận nội dung chương trình '+LOAI_TEN[d.loai]+' ca '+CA_SHORT[caOf(d)]+'.','✓ Chuyển chính thức',false,async()=>{
-    if(dkChotBusy||!dukien[id]||!curUser)return;
+  const d0=dukien[id];if(!d0||!curUser)return;
+  const fp0=dkFingerprint(d0); // chụp nội dung lúc mở hộp thoại
+  showConfirm('Chuyển thành lớp chính thức','Tạo lớp chính thức "'+d0.ten+'" (khai giảng '+fmtDate(parseYMD(d0.ngay))+', '+d0.sobuoi+' buổi)? Lớp sẽ hiện cho tất cả giáo viên và nhận nội dung chương trình '+LOAI_TEN[d0.loai]+' ca '+CA_SHORT[caOf(d0)]+'.','✓ Chuyển chính thức',false,async()=>{
+    if(dkChotBusy||!curUser)return;
+    // Đọc lại bản mới nhất — nếu đã bị sửa/xóa trong lúc mở hộp thoại thì hủy, không dùng dữ liệu cũ
+    const d=dukien[id];if(!d)return;
+    if(dkFingerprint(d)!==fp0){showToast('⚠️ Lớp dự kiến vừa được thay đổi — vui lòng xem lại rồi xác nhận lại.');return;}
     dkChotBusy=id;dkChotBtnState(id,true);
     const lop=buildLop(d.ten,d.loai,d.gv,d.ngay,d.gioBD,d.gioKT,d.sobuoi,d.ghichu||'',d.thuHoc,caOf(d));
-    openState[lop.id]=true;lsSet('tk_open',openState);
     const clean=JSON.parse(JSON.stringify(lop));
     delete clean.open;
     // Ghi nguyên tử: tạo lớp chính thức + xóa lớp dự kiến trong CÙNG một lệnh update — lỗi thì không bên nào thay đổi
@@ -2016,6 +2021,7 @@ window.dkChot=function(id){
         ['lops/'+lop.id]:clean,
         ['dukien/'+curUser.key+'/'+id]:null
       });
+      openState[lop.id]=true;lsSet('tk_open',openState);
       setSyncStatus('ok');
       showToast('🎉 Đã tạo lớp chính thức '+d.ten);
       window.switchTab('ds');
