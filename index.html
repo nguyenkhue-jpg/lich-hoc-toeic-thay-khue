@@ -38,6 +38,8 @@ body{background:var(--bg);color:var(--text);font-size:15px;min-height:100vh}
 /* TABS */
 .tabs-wrap{background:#fff;border-bottom:1px solid var(--border);padding:0 12px;position:sticky;top:52px;z-index:99;overflow-x:auto;-webkit-overflow-scrolling:touch}
 .tabs{display:flex;gap:0;min-width:max-content}
+/* Khoảng đệm đầu nhóm tab: căn mép trái nhóm tab thẳng với nội dung .main (920px); tự co về 0 khi không đủ chỗ */
+.tabs::before{content:'';flex:0 1 max(8px,calc((100% - 920px) / 2 + 20px));min-width:0}
 .tab{padding:12px 16px;font-size:14px;font-weight:600;cursor:pointer;color:var(--text3);border-bottom:3px solid transparent;transition:all .15s;white-space:nowrap;user-select:none}
 .tab.active{color:var(--accent);border-bottom-color:var(--accent)}
 .tab:hover:not(.active){color:var(--text)}
@@ -94,6 +96,7 @@ body{background:var(--bg);color:var(--text);font-size:15px;min-height:100vh}
 .btn.prim{background:var(--accent);color:#fff;border-color:var(--accent)}
 .btn.prim:hover{background:#1558c0}
 .btn.sm{padding:5px 12px;font-size:12px}
+.btn:disabled{opacity:.6;cursor:not-allowed}
 .btn.del{background:#FEF2F2;color:var(--red);border-color:#FECACA}
 .btn.del:hover{background:#FEE2E2}
 .btn.success{background:#F0FDF4;color:var(--green);border-color:#BBF7D0}
@@ -342,6 +345,7 @@ body{background:var(--bg);color:var(--text);font-size:15px;min-height:100vh}
 .warn-card .warn-ico{font-size:18px;flex-shrink:0}
 .warn-card .btn{margin-left:auto}
 .warn-card.expired{background:#FFF1F1;border-color:#F4A0A0}
+.warn-more{display:flex;margin:0 auto 10px}
 
 /* ===== LỚP HẾT HẠN ===== */
 .hh-card{background:#fff;border:1px solid var(--border);border-left:4px solid var(--navy);border-radius:12px;padding:14px 16px;margin-bottom:12px}
@@ -390,6 +394,7 @@ body{background:var(--bg);color:var(--text);font-size:15px;min-height:100vh}
 
 @media(max-width:640px){
   .main{padding:12px}
+  .tabs::before{display:none}
   .form-card{padding:16px}
   .form-grid.g2,.form-grid.g3{grid-template-columns:1fr}
   .loai-grid{grid-template-columns:1fr 1fr}
@@ -545,7 +550,7 @@ body{background:var(--bg);color:var(--text);font-size:15px;min-height:100vh}
 
       <div class="row-btns">
         <button class="btn" onclick="switchTab('ds')">Hủy</button>
-        <button class="btn prim" onclick="themLop()">✓ Tạo lớp</button>
+        <button class="btn prim" id="f-save-btn" onclick="themLop()">✓ Tạo lớp</button>
       </div>
     </div>
   </div>
@@ -802,7 +807,7 @@ body{background:var(--bg);color:var(--text);font-size:15px;min-height:100vh}
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-import { getDatabase, ref, onValue, set, get, remove } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+import { getDatabase, ref, onValue, set, get, remove, update } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyC5LDTac_n7lJ4h1tk_sSHBFtIQ2mGMPAI",
@@ -1453,7 +1458,9 @@ function buildLop(ten,loai,gv,ngay,gioBD,gioKT,sobuoi,ghichu,thuHoc,ca){
     })
   };
 }
+let themLopBusy=false;
 window.themLop=async function(){
+  if(themLopBusy)return; // chặn bấm đúp khi đang lưu
   const ten=document.getElementById('f-ten').value.trim();
   const ngay=document.getElementById('f-ngay').value;
   const gioBD=document.getElementById('f-gio-bd').value;
@@ -1464,21 +1471,32 @@ window.themLop=async function(){
   const err=validateLopForm(ten,ngay,gioBD,gioKT,sobuoi,selDaysMain);
   showErr('f-err',err);
   if(err)return;
-  const lop=buildLop(ten,curLoai,gv,ngay,gioBD,gioKT,sobuoi,ghichu,selDaysMain,curCa);
-  openState[lop.id]=true;lsSet('tk_open',openState);
-  if(await saveLop(lop)){
-    showToast('✅ Đã tạo lớp '+ten);
-    document.getElementById('f-ten').value='';
-    document.getElementById('f-ngay').value='';
-    document.getElementById('f-ghichu').value='';
-    autoSobuoi('f-sobuoi',curLoai,curCa);
-    selDaysMain=[];renderDayPicker('day-picker-main',selDaysMain,'toggleDayMain');
-    autoTenMain='';
-    window.switchTab('ds');
+  themLopBusy=true;
+  const btn=document.getElementById('f-save-btn');
+  btn.disabled=true;btn.textContent='Đang lưu...';
+  try{
+    const lop=buildLop(ten,curLoai,gv,ngay,gioBD,gioKT,sobuoi,ghichu,selDaysMain,curCa);
+    openState[lop.id]=true;lsSet('tk_open',openState);
+    if(await saveLop(lop)){
+      showToast('✅ Đã tạo lớp '+ten);
+      document.getElementById('f-ten').value='';
+      document.getElementById('f-ngay').value='';
+      document.getElementById('f-ghichu').value='';
+      autoSobuoi('f-sobuoi',curLoai,curCa);
+      selDaysMain=[];renderDayPicker('day-picker-main',selDaysMain,'toggleDayMain');
+      autoTenMain='';
+      window.switchTab('ds');
+    }
+  }finally{
+    themLopBusy=false;
+    btn.disabled=false;btn.textContent='✓ Tạo lớp';
   }
 };
 
 /* ===== HÔM NAY ===== */
+const WARN_MAX=3;
+let todayWarnAll=false; // đang mở rộng toàn bộ cảnh báo?
+window.toggleTodayWarn=function(){todayWarnAll=!todayWarnAll;renderToday();};
 function renderToday(){
   const t=today0();
   document.getElementById('today-date-lbl').textContent=DAY_NAMES[(t.getDay()+6)%7]+', '+fmtDate(t);
@@ -1514,21 +1532,24 @@ function renderToday(){
   }
   const shown=todayGV?items.filter(it=>gvKey(it.lop.gv)===todayGV):items;
   // Cảnh báo lớp sắp kết thúc (còn 1–3 buổi)
-  let warnHtml='';
+  const warns=[];
   lops.forEach(l=>{
     const r=remainOf(l);
     if(r>0&&r<=3){
       const valid=l.ngayHoc.filter(b=>!b.vang);
       const kt=valid.length?fmtDate(pd(valid[valid.length-1].date)):'—';
-      warnHtml+='<div class="warn-card"><span class="warn-ico">⚠️</span><span>Lớp <b style="color:'+LOAI_MAIN[l.loai]+'">'+esc(l.ten)+'</b> chỉ còn <b>'+r+' buổi</b> — kết thúc '+kt+'.</span><button class="btn sm prim" onclick="dkTuLop(\''+l.id+'\')">🗓️ Xếp lớp kế tiếp</button></div>';
+      warns.push('<div class="warn-card"><span class="warn-ico">⚠️</span><span>Lớp <b style="color:'+LOAI_MAIN[l.loai]+'">'+esc(l.ten)+'</b> chỉ còn <b>'+r+' buổi</b> — kết thúc '+kt+'.</span><button class="btn sm prim" onclick="dkTuLop(\''+l.id+'\')">🗓️ Xếp lớp kế tiếp</button></div>');
     }
   });
   // Nhắc gỡ nội dung: mốc đã quá hạn >= 1 ngày và chưa xử lý
   lops.filter(isEnded).forEach(l=>{
     hethanPending(l).forEach(m=>{
-      warnHtml+='<div class="warn-card expired"><span class="warn-ico">'+m.icon+'</span><span><b>'+m.lbl+'</b> của lớp <b style="color:'+LOAI_MAIN[l.loai]+'">'+esc(l.ten)+'</b> đã hết hạn từ <b>'+fmtDate(m.date)+'</b> ('+(-mocDaysLeft(m))+' ngày trước).</span><button class="btn sm prim" onclick="switchTab(\'hethan\')">⏳ Xem chi tiết</button></div>';
+      warns.push('<div class="warn-card expired"><span class="warn-ico">'+m.icon+'</span><span><b>'+m.lbl+'</b> của lớp <b style="color:'+LOAI_MAIN[l.loai]+'">'+esc(l.ten)+'</b> đã hết hạn từ <b>'+fmtDate(m.date)+'</b> ('+(-mocDaysLeft(m))+' ngày trước).</span><button class="btn sm prim" onclick="switchTab(\'hethan\')">⏳ Xem chi tiết</button></div>');
     });
   });
+  // Nhiều hơn 3 cảnh báo: mặc định chỉ hiện 3 cái đầu, có nút Xem tất cả / Thu gọn
+  let warnHtml=(warns.length>WARN_MAX&&!todayWarnAll?warns.slice(0,WARN_MAX):warns).join('');
+  if(warns.length>WARN_MAX)warnHtml+='<button class="btn sm warn-more" onclick="toggleTodayWarn()">'+(todayWarnAll?'Thu gọn':'Xem tất cả ('+warns.length+')')+'</button>';
   if(items.length===0){
     el.innerHTML=dash+'<div class="empty-state"><span class="empty-icon">🌤️</span><div class="empty-title">Hôm nay không có lớp nào</div><div class="empty-desc">Xem tab <b>Danh sách lớp</b> để biết các buổi sắp tới.</div></div>'+warnHtml;
     return;
@@ -1771,9 +1792,16 @@ window.toggleVang=async function(lid,idx){
   const lop=lops.find(l=>l.id===lid);if(!lop||!lop.ngayHoc[idx])return;
   const b=lop.ngayHoc[idx];
   if(!b.vang){
-    b.vang=true;
-    lop.ngayHoc.push({date:nextDateAfterLast(lop),vang:false,nd:'',ve:'',them:'vang'});
-    if(await saveLop(lop)){renderAllVisible();showToast('📌 Đã đánh dấu vắng — thêm 1 buổi vào cuối lịch');}
+    // Hỏi xác nhận trước — bấm Hủy thì không thay đổi dữ liệu
+    const date0=b.date;
+    showConfirm('Đánh dấu nghỉ buổi học?','Buổi học này sẽ được đánh dấu nghỉ và hệ thống sẽ tự thêm 1 buổi vào cuối lịch.','Xác nhận nghỉ',true,async()=>{
+      const lop=lops.find(l=>l.id===lid);if(!lop)return;
+      const b=lop.ngayHoc[idx];
+      if(!b||b.vang||b.date!==date0)return; // dữ liệu đã đổi trong lúc mở hộp thoại
+      b.vang=true;
+      lop.ngayHoc.push({date:nextDateAfterLast(lop),vang:false,nd:'',ve:'',them:'vang'});
+      if(await saveLop(lop)){renderAllVisible();showToast('📌 Đã đánh dấu vắng — thêm 1 buổi vào cuối lịch');}
+    });
   }else{
     b.vang=false;
     const t=today0();
@@ -1888,7 +1916,9 @@ window.dkCompute=function(){
   box.innerHTML='📅 Khai giảng: <b>'+DAYS[kg.getDay()]+' '+fmtDate(kg)+'</b> &nbsp;→&nbsp; 🏁 Kết thúc dự kiến: <b>'+DAYS[kt.getDay()]+' '+fmtDate(kt)+'</b><br>Tổng <b>'+sobuoi+' buổi</b> · kéo dài khoảng <b>'+weeks+' tuần</b> ('+[...selDaysDK].sort((a,b)=>a-b).map(d=>DAYS[d]).join(' · ')+', '+esc(document.getElementById('dk-gio-bd').value)+'–'+esc(document.getElementById('dk-gio-kt').value)+')';
   box.classList.add('show');
 };
+let dkLuuBusy=false;
 window.dkLuu=async function(){
+  if(dkLuuBusy)return; // chặn bấm đúp khi đang lưu
   if(!curUser){showToast('Vui lòng đăng nhập trước.');return;}
   const tenIn=document.getElementById('dk-ten').value.trim();
   const ngay=document.getElementById('dk-ngay').value;
@@ -1903,6 +1933,9 @@ window.dkLuu=async function(){
   if(err)return;
   const id=dkEditId||('dk_'+Date.now()+'_'+Math.floor(Math.random()*1000));
   const obj={id,ten,loai:curLoaiDK,ca:curCaDK,gv,ngay,gioBD,gioKT,sobuoi,thuHoc:[...selDaysDK].sort((a,b)=>a-b),ghichu,created:dukien[id]?dukien[id].created:Date.now()};
+  dkLuuBusy=true;
+  const btn=document.getElementById('dk-save-btn');
+  btn.disabled=true;btn.textContent='Đang lưu...';
   setSyncStatus('saving');
   try{
     await set(ref(db,'dukien/'+curUser.key+'/'+id),obj);
@@ -1910,6 +1943,10 @@ window.dkLuu=async function(){
     showToast(dkEditId?'💾 Đã cập nhật lớp dự kiến':'✅ Đã lưu lớp dự kiến');
     dkResetForm();
   }catch(e){setSyncStatus('err');showToast('❌ Lỗi lưu: '+e.message);}
+  finally{
+    dkLuuBusy=false;
+    btn.disabled=false;btn.textContent=dkEditId?'💾 Cập nhật':'💾 Lưu lớp dự kiến';
+  }
 };
 function dkResetForm(){
   dkEditId=null;autoTenDK='';
@@ -1956,16 +1993,40 @@ window.dkXoa=function(id){
     }catch(e){showToast('❌ Lỗi xóa: '+e.message);}
   });
 };
+let dkChotBusy=null; // id lớp dự kiến đang được chuyển chính thức
+function dkChotBtnState(id,busy){
+  document.querySelectorAll('[data-dk-chot="'+id+'"]').forEach(b=>{
+    b.disabled=busy;b.textContent=busy?'Đang lưu...':'✓ Chuyển thành lớp chính thức';
+  });
+}
+// Dấu vân tay nội dung lớp dự kiến (khóa sắp xếp cố định) — dùng để phát hiện bản đã bị sửa ở tab/thiết bị khác
+function dkFingerprint(d){return JSON.stringify(d,Object.keys(d).sort());}
 window.dkChot=function(id){
-  const d=dukien[id];if(!d||!curUser)return;
-  showConfirm('Chuyển thành lớp chính thức','Tạo lớp chính thức "'+d.ten+'" (khai giảng '+fmtDate(parseYMD(d.ngay))+', '+d.sobuoi+' buổi)? Lớp sẽ hiện cho tất cả giáo viên và nhận nội dung chương trình '+LOAI_TEN[d.loai]+' ca '+CA_SHORT[caOf(d)]+'.','✓ Chuyển chính thức',false,async()=>{
+  if(dkChotBusy)return; // chặn bấm đúp khi đang lưu
+  const d0=dukien[id];if(!d0||!curUser)return;
+  const fp0=dkFingerprint(d0); // chụp nội dung lúc mở hộp thoại
+  showConfirm('Chuyển thành lớp chính thức','Tạo lớp chính thức "'+d0.ten+'" (khai giảng '+fmtDate(parseYMD(d0.ngay))+', '+d0.sobuoi+' buổi)? Lớp sẽ hiện cho tất cả giáo viên và nhận nội dung chương trình '+LOAI_TEN[d0.loai]+' ca '+CA_SHORT[caOf(d0)]+'.','✓ Chuyển chính thức',false,async()=>{
+    if(dkChotBusy||!curUser)return;
+    // Đọc lại bản mới nhất — nếu đã bị sửa/xóa trong lúc mở hộp thoại thì hủy, không dùng dữ liệu cũ
+    const d=dukien[id];if(!d)return;
+    if(dkFingerprint(d)!==fp0){showToast('⚠️ Lớp dự kiến vừa được thay đổi — vui lòng xem lại rồi xác nhận lại.');return;}
+    dkChotBusy=id;dkChotBtnState(id,true);
     const lop=buildLop(d.ten,d.loai,d.gv,d.ngay,d.gioBD,d.gioKT,d.sobuoi,d.ghichu||'',d.thuHoc,caOf(d));
-    openState[lop.id]=true;lsSet('tk_open',openState);
-    if(await saveLop(lop)){
-      try{await remove(ref(db,'dukien/'+curUser.key+'/'+id));}catch(e){}
+    const clean=JSON.parse(JSON.stringify(lop));
+    delete clean.open;
+    // Ghi nguyên tử: tạo lớp chính thức + xóa lớp dự kiến trong CÙNG một lệnh update — lỗi thì không bên nào thay đổi
+    setSyncStatus('saving');
+    try{
+      await update(ref(db),{
+        ['lops/'+lop.id]:clean,
+        ['dukien/'+curUser.key+'/'+id]:null
+      });
+      openState[lop.id]=true;lsSet('tk_open',openState);
+      setSyncStatus('ok');
       showToast('🎉 Đã tạo lớp chính thức '+d.ten);
       window.switchTab('ds');
-    }
+    }catch(e){setSyncStatus('err');showToast('❌ Lỗi lưu: '+e.message);}
+    finally{dkChotBusy=null;dkChotBtnState(id,false);}
   });
 };
 
@@ -2054,7 +2115,7 @@ function renderDuKien(){
         '<div class="dk-meta">'+esc(LOAI_TEN[d.loai])+' · <span class="ca-badge">'+CA_ICON[caOf(d)]+' '+CA_SHORT[caOf(d)]+'</span> · '+thuStr+' · '+esc(d.gioBD)+'–'+esc(d.gioKT)+' · <b>'+d.sobuoi+' buổi</b> · <span class="gv-tag '+gvCls+'" style="margin-left:0">'+esc(d.gv)+'</span>'+(d.ghichu?'<br>📝 '+esc(d.ghichu):'')+'</div>'+
         (due?'<div class="dk-due">⚠️ Đã tới ngày khai giảng — nếu lớp đã chốt, hãy nhấn "✓ Chuyển thành lớp chính thức".</div>':'')+
         '<div class="dk-actions">'+
-          '<button class="btn sm prim" onclick="dkChot(\''+esc(d.id)+'\')">✓ Chuyển thành lớp chính thức</button>'+
+          '<button class="btn sm prim" data-dk-chot="'+esc(d.id)+'" onclick="dkChot(\''+esc(d.id)+'\')"'+(dkChotBusy===d.id?' disabled>Đang lưu...':'>✓ Chuyển thành lớp chính thức')+'</button>'+
           '<button class="btn sm" onclick="dkSua(\''+esc(d.id)+'\')">✏️ Sửa</button>'+
           '<button class="btn sm del" onclick="dkXoa(\''+esc(d.id)+'\')">🗑 Xóa</button>'+
         '</div>'+
