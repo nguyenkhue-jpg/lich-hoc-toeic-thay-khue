@@ -2475,8 +2475,8 @@ function renderAdmin(){
 }
 // Thống kê buổi dạy theo GV theo tháng
 let admMonth=new Date();
-window.admPrevMonth=function(){admMonth.setMonth(admMonth.getMonth()-1);renderGVStats();};
-window.admNextMonth=function(){admMonth.setMonth(admMonth.getMonth()+1);renderGVStats();};
+window.admPrevMonth=function(){admMonth=new Date(admMonth.getFullYear(),admMonth.getMonth()-1,1);renderGVStats();};
+window.admNextMonth=function(){admMonth=new Date(admMonth.getFullYear(),admMonth.getMonth()+1,1);renderGVStats();};
 window.admThisMonth=function(){admMonth=new Date();renderGVStats();};
 function renderGVStats(){
   const el=document.getElementById('adm-gv-stats');
