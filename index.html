@@ -662,7 +662,7 @@ body{background:var(--bg);color:var(--text);font-size:15px;min-height:100vh}
   <div id="panel-hethan" class="panel">
     <div class="form-card">
       <div class="form-title">⏳ Quản lý lớp hết hạn</div>
-      <div class="form-desc">Theo dõi 3 mốc gỡ nội dung sau khi lớp kết thúc: <b>🎬 Video</b> (buổi cuối + 10 ngày) · <b>📑 Slide</b> (buổi cuối + 30 ngày) · <b>🗂️ Toàn bộ nội dung</b> (khai giảng + 6 tháng). Ngoài ra, <b>🎬 Xóa Video B.G</b> nhắc gỡ video <b>từng buổi</b> khi đủ 12 ngày sau ngày học (áp dụng cả lớp đang học) — bấm <b>✓ Đã gỡ</b> sau khi gỡ. Tick ✓ sau khi đã gỡ xong — trạng thái đồng bộ cho mọi giáo viên. App chỉ nhắc, <b>không tự xóa</b> dữ liệu.</div>
+      <div class="form-desc">Theo dõi 3 mốc gỡ nội dung sau khi lớp kết thúc: <b>🎬 Video</b> (buổi cuối + 10 ngày) · <b>📑 Slide</b> (buổi cuối + 30 ngày) · <b>🗂️ Toàn bộ nội dung</b> (khai giảng + 6 tháng). Ngoài ra, <b>🎬 Xóa Video B.G</b> nhắc gỡ video <b>từng buổi</b> khi đủ 12 ngày sau ngày học (áp dụng cả lớp đang học) — bấm <b>✓ Đã gỡ</b> sau khi gỡ. Tick ✓ sau khi đã gỡ xong — trạng thái đồng bộ cho mọi giáo viên. Mốc đã tick sẽ <b>tự ẩn sau 24 giờ</b> (mốc chưa tick luôn hiển thị). App chỉ nhắc, <b>không tự xóa</b> dữ liệu.</div>
       <div id="hethan-list"><div class="loading">⏳ Đang tải dữ liệu...</div></div>
     </div>
   </div>
@@ -940,12 +940,16 @@ function hethanMocs(lop){
   const lv=lastValidDate(lop);
   const kg=lop.ngay?pd(lop.ngay):null;
   const hh=lop.hethan||{};
+  const at=k=>typeof hh[k]==='number'?hh[k]:0; // thời điểm tick ✓ (ms); dữ liệu cũ lưu `true` → coi như tick từ lâu
   const m=[];
-  if(lv)m.push({key:'video',icon:'🎬',lbl:'Gỡ Video B.G',date:addDays(lv,10),done:!!hh.video});
-  if(lv)m.push({key:'slide',icon:'📑',lbl:'Gỡ Slide B.G',date:addDays(lv,30),done:!!hh.slide});
-  if(kg)m.push({key:'all',icon:'🗂️',lbl:'Gỡ hết nội dung',date:addMonths(kg,6),done:!!hh.all});
+  if(lv)m.push({key:'video',icon:'🎬',lbl:'Gỡ Video B.G',date:addDays(lv,10),done:!!hh.video,doneAt:at('video')});
+  if(lv)m.push({key:'slide',icon:'📑',lbl:'Gỡ Slide B.G',date:addDays(lv,30),done:!!hh.slide,doneAt:at('slide')});
+  if(kg)m.push({key:'all',icon:'🗂️',lbl:'Gỡ hết nội dung',date:addMonths(kg,6),done:!!hh.all,doneAt:at('all')});
   return m;
 }
+// Mốc đã tick ✓ quá 24 giờ thì tự ẩn khỏi tab Lớp hết hạn (mốc chưa tick luôn hiển thị)
+const HETHAN_AN_SAU_MS=24*60*60*1000;
+function mocHidden(m){return m.done&&Date.now()-m.doneAt>=HETHAN_AN_SAU_MS;}
 // Số ngày còn lại tới mốc (âm = đã quá hạn)
 function mocDaysLeft(moc){return Math.round((moc.date-today0())/86400000);}
 // Mốc cần nhắc ở tab Hôm nay: quá hạn >= 1 ngày và chưa xử lý
@@ -1616,6 +1620,8 @@ function renderToday(){
 
 /* ===== LỚP HẾT HẠN ===== */
 let hethanOrder=null; // thứ tự hiển thị — chốt lúc mở tab, giữ nguyên khi thao tác
+let hethanShowHidden=false; // đang mở xem các mốc đã ẩn?
+window.toggleHetHanHidden=function(){hethanShowHidden=!hethanShowHidden;renderHetHan();};
 function mocPill(m){
   const d=mocDaysLeft(m);
   if(m.done)return'<span class="hh-pill handled">✓ Đã xử lý</span>';
@@ -1677,7 +1683,11 @@ function renderHetHan(){
     rows.forEach(r=>{if(!hethanOrder.includes(r.l.id))hethanOrder.push(r.l.id);});
   }
   const active=rows.filter(r=>r.pend.length>0);
-  const done=rows.filter(r=>r.pend.length===0);
+  const doneAll=rows.filter(r=>r.pend.length===0);
+  // Lớp xong cả 3 mốc: còn trong 24 giờ sau lần tick thì hiện, quá 24 giờ thì ẩn (trừ khi đang mở xem mục đã ẩn)
+  const doneHidden=doneAll.filter(r=>r.mocs.every(mocHidden));
+  const done=hethanShowHidden?doneAll:doneAll.filter(r=>!r.mocs.every(mocHidden));
+  const nHiddenMoc=rows.reduce((s,r)=>s+r.mocs.filter(mocHidden).length,0);
   const card=(r)=>{
     const l=r.l;
     const lv=lastValidDate(l);
@@ -1686,7 +1696,7 @@ function renderHetHan(){
       '<div class="hh-head"><span class="hh-ten" style="color:'+LOAI_MAIN[l.loai]+'">'+LOAI_ICON[l.loai]+' '+esc(l.ten)+'</span>'+
       '<span class="gv-tag '+(GV_CLASS[l.gv]||'other-gv')+'">'+esc(l.gv)+'</span></div>'+
       '<div class="hh-meta">Khai giảng: <b>'+(kg?fmtDate(kg):'—')+'</b> · Buổi cuối: <b>'+(lv?fmtDate(lv):'—')+'</b></div>'+
-      '<div class="hh-mocs">'+r.mocs.map(m=>
+      '<div class="hh-mocs">'+r.mocs.filter(m=>hethanShowHidden||!mocHidden(m)).map(m=>
         '<label class="hh-moc '+mocCls(m)+'"><input type="checkbox" '+(m.done?'checked':'')+' onchange="toggleHetHan(\''+l.id+'\',\''+m.key+'\',this.checked)">'+
         '<span class="hh-moc-body"><span class="hh-moc-lbl">'+m.icon+' '+m.lbl+'</span><br>Hạn: '+fmtDate(m.date)+'</span>'+mocPill(m)+'</label>'
       ).join('')+'</div>'+
@@ -1696,12 +1706,14 @@ function renderHetHan(){
   if(active.length)html+='<div class="hh-sec-title">🔔 Lớp đã kết thúc cần theo dõi ('+active.length+' lớp)</div>'+active.map(card).join('');
   else html+='<div class="hh-empty">🎉 Mọi lớp đã kết thúc đều được xử lý xong.</div>';
   if(done.length)html+='<div class="hh-sec-title">✅ Đã xử lý xong ('+done.length+' lớp)</div>'+done.map(card).join('');
+  if(nHiddenMoc>0)html+='<div style="text-align:center;margin-top:12px"><button class="btn sm" onclick="toggleHetHanHidden()">'+
+    (hethanShowHidden?'🙈 Ẩn lại các mốc đã xử lý':'👁 Xem '+nHiddenMoc+' mốc đã xử lý (đã ẩn sau 24 giờ'+(doneHidden.length?' · '+doneHidden.length+' lớp xong hẳn':'')+')')+'</button></div>';
   el.innerHTML=html;
 }
 window.toggleHetHan=async function(id,key,val){
   const l=lops.find(x=>x.id===id);if(!l)return;
   if(!l.hethan)l.hethan={};
-  if(val)l.hethan[key]=true;else delete l.hethan[key];
+  if(val)l.hethan[key]=Date.now();else delete l.hethan[key]; // lưu thời điểm tick để tự ẩn sau 24 giờ
   if(Object.keys(l.hethan).length===0)delete l.hethan;
   if(await saveLop(l)){
     renderHetHan();updateHetHanBadge();renderToday();
@@ -2709,7 +2721,7 @@ document.querySelectorAll('.modal-ov').forEach(ov=>{
   ov.addEventListener('click',(e)=>{if(e.target===ov)ov.classList.remove('show');});
 });
 // Tự làm mới tab Hôm nay khi sang ngày mới (app mở qua đêm)
-setInterval(()=>{renderToday();},60*1000*10);
+setInterval(()=>{renderToday();if(isActive('hethan'))renderHetHan();},60*1000*10);
 </script>
 </body>
 </html>
