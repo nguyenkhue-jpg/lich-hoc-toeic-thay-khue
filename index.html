@@ -368,6 +368,7 @@ body{background:var(--bg);color:var(--text);font-size:15px;min-height:100vh}
 .hh-pill.overdue{background:#FEE2E2;color:#B91C1C}
 .hh-pill.handled{background:#DCFCE7;color:#166534}
 .hh-empty{padding:36px;text-align:center;color:var(--text3);font-size:13px}
+.hh-vid .btn{flex-shrink:0}
 .hh-sec-title{font-size:13px;font-weight:800;color:var(--text2);margin:18px 0 8px}
 .tab .tab-badge{display:inline-block;min-width:17px;padding:0 5px;margin-left:5px;background:#DC2626;color:#fff;border-radius:99px;font-size:10.5px;font-weight:800;line-height:17px;text-align:center;vertical-align:1px}
 .badge.note{background:#FEF3C7;color:#92400E;max-width:150px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
@@ -393,6 +394,9 @@ body{background:var(--bg);color:var(--text);font-size:15px;min-height:100vh}
 .loading{text-align:center;padding:40px;color:var(--text3);font-size:14px}
 
 @media(max-width:640px){
+  .hh-vid{flex-wrap:wrap}
+  .hh-vid .hh-moc-body{flex-basis:100%}
+  .hh-vid .btn{margin-left:auto}
   .main{padding:12px}
   .tabs::before{display:none}
   .form-card{padding:16px}
@@ -658,7 +662,7 @@ body{background:var(--bg);color:var(--text);font-size:15px;min-height:100vh}
   <div id="panel-hethan" class="panel">
     <div class="form-card">
       <div class="form-title">⏳ Quản lý lớp hết hạn</div>
-      <div class="form-desc">Theo dõi 3 mốc gỡ nội dung sau khi lớp kết thúc: <b>🎬 Video</b> (buổi cuối + 10 ngày) · <b>📑 Slide</b> (buổi cuối + 30 ngày) · <b>🗂️ Toàn bộ nội dung</b> (khai giảng + 6 tháng). Tick ✓ sau khi đã gỡ xong — trạng thái đồng bộ cho mọi giáo viên. App chỉ nhắc, <b>không tự xóa</b> dữ liệu.</div>
+      <div class="form-desc">Theo dõi 3 mốc gỡ nội dung sau khi lớp kết thúc: <b>🎬 Video</b> (buổi cuối + 10 ngày) · <b>📑 Slide</b> (buổi cuối + 30 ngày) · <b>🗂️ Toàn bộ nội dung</b> (khai giảng + 6 tháng). Ngoài ra, <b>🎬 Xóa Video B.G</b> nhắc gỡ video <b>từng buổi</b> khi đủ 12 ngày sau ngày học (áp dụng cả lớp đang học) — bấm <b>✓ Đã gỡ</b> sau khi gỡ. Tick ✓ sau khi đã gỡ xong — trạng thái đồng bộ cho mọi giáo viên. App chỉ nhắc, <b>không tự xóa</b> dữ liệu.</div>
       <div id="hethan-list"><div class="loading">⏳ Đang tải dữ liệu...</div></div>
     </div>
   </div>
@@ -917,12 +921,13 @@ function nextDateAfterLastSkip(lop,tu,den){
 // Sắp lại thứ tự ngày sau khi dời buổi: ngày/vắng/nhãn/ghi chú đi theo ngày,
 // còn nội dung (nd/ve) giữ nguyên vị trí slot để không lệch chương trình
 function resortDates(lop){
-  const cal=lop.ngayHoc.map(b=>({date:b.date,vang:!!b.vang,them:b.them,note:b.note}));
+  const cal=lop.ngayHoc.map(b=>({date:b.date,vang:!!b.vang,them:b.them,note:b.note,videoGo:b.videoGo}));
   cal.sort((a,b)=>new Date(a.date)-new Date(b.date));
   lop.ngayHoc.forEach((b,i)=>{
     b.date=cal[i].date;b.vang=cal[i].vang;
     if(cal[i].them)b.them=cal[i].them;else delete b.them;
     if(cal[i].note)b.note=cal[i].note;else delete b.note;
+    if(cal[i].videoGo)b.videoGo=true;else delete b.videoGo;
   });
 }
 function isEnded(lop){const t=today0();return lop.ngayHoc.length>0&&!lop.ngayHoc.some(b=>!b.vang&&pd(b.date)>=t);}
@@ -945,6 +950,25 @@ function hethanMocs(lop){
 function mocDaysLeft(moc){return Math.round((moc.date-today0())/86400000);}
 // Mốc cần nhắc ở tab Hôm nay: quá hạn >= 1 ngày và chưa xử lý
 function hethanPending(lop){return hethanMocs(lop).filter(m=>!m.done&&mocDaysLeft(m)<=-1);}
+/* ===== XÓA VIDEO B.G TỪNG BUỔI =====
+   Học viên xem lại video 12 ngày sau mỗi buổi. Từ ngày học + 12 ngày, app nhắc gỡ video buổi đó
+   (vd: học 01/10 → nhắc từ 13/10) cho tới khi giáo viên bấm "✓ Đã gỡ" (lưu b.videoGo=true). */
+const VIDEO_XEM_NGAY=12;
+const VIDEO_TU_NGAY='2026-09-25'; // chỉ theo dõi buổi từ ngày này — buổi cũ hơn coi như đã gỡ trước khi có tính năng
+function videoPending(){
+  const t=today0(),from=parseYMD(VIDEO_TU_NGAY),list=[];
+  lops.forEach(l=>l.ngayHoc.forEach((b,i)=>{
+    if(b.vang||b.videoGo)return;
+    const d=pd(b.date);
+    if(d<from)return;
+    const han=addDays(d,VIDEO_XEM_NGAY);
+    if(han>t)return;
+    list.push({lop:l,i,stt:sttOf(l,i),d,han,tre:Math.round((t-han)/86400000)});
+  }));
+  list.sort((a,b)=>a.han-b.han||(a.lop.gioBD||'').localeCompare(b.lop.gioBD||''));
+  return list;
+}
+function videoTreTxt(v){return v.tre===0?'hôm nay':v.tre+' ngày trước';}
 function remainOf(lop){const t=today0();return lop.ngayHoc.filter(b=>!b.vang&&pd(b.date)>=t).length;}
 function doneOf(lop){const t=today0();return lop.ngayHoc.filter(b=>!b.vang&&pd(b.date)<t).length;}
 function ymdStr(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');}
@@ -1547,6 +1571,10 @@ function renderToday(){
       warns.push('<div class="warn-card expired"><span class="warn-ico">'+m.icon+'</span><span><b>'+m.lbl+'</b> của lớp <b style="color:'+LOAI_MAIN[l.loai]+'">'+esc(l.ten)+'</b> đã hết hạn từ <b>'+fmtDate(m.date)+'</b> ('+(-mocDaysLeft(m))+' ngày trước).</span><button class="btn sm prim" onclick="switchTab(\'hethan\')">⏳ Xem chi tiết</button></div>');
     });
   });
+  // Nhắc Xóa Video B.G từng buổi: đủ 12 ngày sau ngày học và chưa gỡ
+  videoPending().forEach(v=>{
+    warns.push('<div class="warn-card expired"><span class="warn-ico">🎬</span><span><b>Xóa Video B.G</b> lớp <b style="color:'+LOAI_MAIN[v.lop.loai]+'">'+esc(v.lop.ten)+'</b> · Buổi <b>'+v.stt+'</b> (học '+fmtDate(v.d)+') — đến hạn gỡ từ <b>'+fmtDate(v.han)+'</b> ('+videoTreTxt(v)+').</span><button class="btn sm prim" onclick="xacNhanGoVideo(\''+v.lop.id+'\','+v.i+')">✓ Đã gỡ</button></div>');
+  });
   // Nhiều hơn 3 cảnh báo: mặc định chỉ hiện 3 cái đầu, có nút Xem tất cả / Thu gọn
   let warnHtml=(warns.length>WARN_MAX&&!todayWarnAll?warns.slice(0,WARN_MAX):warns).join('');
   if(warns.length>WARN_MAX)warnHtml+='<button class="btn sm warn-more" onclick="toggleTodayWarn()">'+(todayWarnAll?'Thu gọn':'Xem tất cả ('+warns.length+')')+'</button>';
@@ -1605,9 +1633,31 @@ function mocCls(m){
 }
 function renderHetHan(){
   const el=document.getElementById('hethan-list');if(!el)return;
+  // Phần 1: Xóa Video B.G từng buổi (nhóm theo lớp)
+  const vids=videoPending();
+  let vHtml='<div class="hh-sec-title" style="margin-top:0">🎬 Xóa Video B.G ('+vids.length+' buổi cần gỡ)</div>';
+  if(vids.length===0)vHtml+='<div class="hh-empty" style="padding:14px">✅ Không có video buổi học nào cần gỡ.</div>';
+  else{
+    const groups=[];
+    vids.forEach(v=>{let g=groups.find(x=>x.lop.id===v.lop.id);if(!g){g={lop:v.lop,items:[]};groups.push(g);}g.items.push(v);});
+    vHtml+=groups.map(g=>{
+      const l=g.lop;
+      return'<div class="hh-card" style="border-left-color:'+LOAI_MAIN[l.loai]+'">'+
+        '<div class="hh-head"><span class="hh-ten" style="color:'+LOAI_MAIN[l.loai]+'">'+LOAI_ICON[l.loai]+' '+esc(l.ten)+'</span>'+
+        '<span class="gv-tag '+(GV_CLASS[l.gv]||'other-gv')+'">'+esc(l.gv)+'</span></div>'+
+        '<div class="hh-mocs" style="margin-top:8px">'+g.items.map(v=>
+          '<div class="hh-moc hh-vid '+(v.tre===0?'soon':'overdue')+'">'+
+          '<span class="hh-moc-body"><span class="hh-moc-lbl">🎬 Buổi '+v.stt+' · học '+fmtDate(v.d)+'</span><br>Hạn gỡ: '+fmtDate(v.han)+'</span>'+
+          '<span class="hh-pill '+(v.tre===0?'soon':'overdue')+'">'+(v.tre===0?'Đến hạn hôm nay':'Quá hạn '+v.tre+' ngày')+'</span>'+
+          '<button class="btn sm prim" onclick="xacNhanGoVideo(\''+l.id+'\','+v.i+')">✓ Đã gỡ</button></div>'
+        ).join('')+'</div>'+
+      '</div>';
+    }).join('');
+  }
+  // Phần 2: các mốc gỡ nội dung của lớp đã kết thúc
   const ended=lops.filter(isEnded);
   if(ended.length===0){
-    el.innerHTML='<div class="hh-empty">🌱 Chưa có lớp nào kết thúc — chưa có gì cần gỡ.</div>';
+    el.innerHTML=vHtml+'<div class="hh-empty">🌱 Chưa có lớp nào kết thúc — chưa có mốc gỡ nội dung nào.</div>';
     return;
   }
   const rows=ended.map(l=>{
@@ -1642,8 +1692,8 @@ function renderHetHan(){
       ).join('')+'</div>'+
     '</div>';
   };
-  let html='';
-  if(active.length)html+='<div class="hh-sec-title" style="margin-top:0">🔔 Cần theo dõi ('+active.length+' lớp)</div>'+active.map(card).join('');
+  let html=vHtml;
+  if(active.length)html+='<div class="hh-sec-title">🔔 Lớp đã kết thúc cần theo dõi ('+active.length+' lớp)</div>'+active.map(card).join('');
   else html+='<div class="hh-empty">🎉 Mọi lớp đã kết thúc đều được xử lý xong.</div>';
   if(done.length)html+='<div class="hh-sec-title">✅ Đã xử lý xong ('+done.length+' lớp)</div>'+done.map(card).join('');
   el.innerHTML=html;
@@ -1658,9 +1708,23 @@ window.toggleHetHan=async function(id,key,val){
     showToast(val?'✓ Đã đánh dấu xử lý xong':'↺ Đã bỏ đánh dấu');
   }else{renderHetHan();}
 };
+window.xacNhanGoVideo=async function(lid,idx,undo){
+  const l=lops.find(x=>x.id===lid);if(!l||!l.ngayHoc[idx]||l.ngayHoc[idx].vang)return;
+  const b=l.ngayHoc[idx];
+  if(undo)delete b.videoGo;else b.videoGo=true;
+  const stt=sttOf(l,idx);
+  if(await saveLop(l)){
+    renderHetHan();updateHetHanBadge();renderToday();
+    if(undo)showToast('↺ Đã bỏ đánh dấu gỡ video Buổi '+stt);
+    else showToast('✓ Đã gỡ video Buổi '+stt+' — '+l.ten,'↺ Hoàn tác',()=>window.xacNhanGoVideo(lid,idx,true));
+  }else{
+    if(undo)b.videoGo=true;else delete b.videoGo;
+    renderHetHan();
+  }
+};
 function updateHetHanBadge(){
   const b=document.getElementById('hethan-badge');if(!b)return;
-  let n=0;
+  let n=videoPending().length;
   lops.filter(isEnded).forEach(l=>{n+=hethanPending(l).length;});
   if(n>0){b.textContent=n;b.style.display='inline-block';}
   else b.style.display='none';
