@@ -662,7 +662,7 @@ body{background:var(--bg);color:var(--text);font-size:15px;min-height:100vh}
   <div id="panel-hethan" class="panel">
     <div class="form-card">
       <div class="form-title">⏳ Quản lý lớp hết hạn</div>
-      <div class="form-desc">Theo dõi 3 mốc gỡ nội dung sau khi lớp kết thúc: <b>🎬 Video</b> (buổi cuối + 10 ngày) · <b>📑 Slide</b> (buổi cuối + 30 ngày) · <b>🗂️ Toàn bộ nội dung</b> (khai giảng + 6 tháng). Ngoài ra, <b>🎬 Xóa Video B.G</b> nhắc gỡ video <b>từng buổi</b> khi đủ 12 ngày sau ngày học (áp dụng cả lớp đang học) — bấm <b>✓ Đã gỡ</b> sau khi gỡ. Tick ✓ sau khi đã gỡ xong — trạng thái đồng bộ cho mọi giáo viên. Mốc đã tick sẽ <b>tự ẩn sau 24 giờ</b> (mốc chưa tick luôn hiển thị). App chỉ nhắc, <b>không tự xóa</b> dữ liệu.</div>
+      <div class="form-desc">Theo dõi 2 mốc gỡ nội dung sau khi lớp kết thúc: <b>📑 Slide</b> (buổi cuối + 30 ngày) · <b>🗂️ Toàn bộ nội dung</b> (khai giảng + 6 tháng). Ngoài ra, <b>🎬 Xóa Video B.G</b> nhắc gỡ video <b>từng buổi</b> khi đủ 12 ngày sau ngày học (chỉ áp dụng sau khi lớp kết thúc buổi cuối) — bấm <b>✓ Đã gỡ</b> sau khi gỡ. Tick ✓ sau khi đã gỡ xong — trạng thái đồng bộ cho mọi giáo viên. Mốc đã tick sẽ <b>tự ẩn sau 24 giờ</b> (mốc chưa tick luôn hiển thị). App chỉ nhắc, <b>không tự xóa</b> dữ liệu.</div>
       <div id="hethan-list"><div class="loading">⏳ Đang tải dữ liệu...</div></div>
     </div>
   </div>
@@ -935,14 +935,13 @@ function isEnded(lop){const t=today0();return lop.ngayHoc.length>0&&!lop.ngayHoc
 function addDays(d,n){const x=new Date(d);x.setDate(x.getDate()+n);x.setHours(0,0,0,0);return x;}
 function addMonths(d,n){const x=new Date(d);const day=x.getDate();x.setMonth(x.getMonth()+n);if(x.getDate()!==day)x.setDate(0);x.setHours(0,0,0,0);return x;}
 function lastValidDate(lop){const v=(lop.ngayHoc||[]).filter(b=>!b.vang);return v.length?pd(v[v.length-1].date):null;}
-// 3 mốc gỡ nội dung: video (buổi cuối +10 ngày), slide (buổi cuối +30 ngày), toàn bộ (khai giảng +6 tháng)
+// 2 mốc gỡ nội dung: slide (buổi cuối +30 ngày), toàn bộ (khai giảng +6 tháng)
 function hethanMocs(lop){
   const lv=lastValidDate(lop);
   const kg=lop.ngay?pd(lop.ngay):null;
   const hh=lop.hethan||{};
   const at=k=>typeof hh[k]==='number'?hh[k]:0; // thời điểm tick ✓ (ms); dữ liệu cũ lưu `true` → coi như tick từ lâu
   const m=[];
-  if(lv)m.push({key:'video',icon:'🎬',lbl:'Gỡ Video B.G',date:addDays(lv,10),done:!!hh.video,doneAt:at('video')});
   if(lv)m.push({key:'slide',icon:'📑',lbl:'Gỡ Slide B.G',date:addDays(lv,30),done:!!hh.slide,doneAt:at('slide')});
   if(kg)m.push({key:'all',icon:'🗂️',lbl:'Gỡ hết nội dung',date:addMonths(kg,6),done:!!hh.all,doneAt:at('all')});
   return m;
@@ -1705,7 +1704,7 @@ function renderHetHan(){
   }
   const active=rows.filter(r=>r.pend.length>0);
   const doneAll=rows.filter(r=>r.pend.length===0);
-  // Lớp xong cả 3 mốc: còn trong 24 giờ sau lần tick thì hiện, quá 24 giờ thì ẩn (trừ khi đang mở xem mục đã ẩn)
+  // Lớp xong hết các mốc: còn trong 24 giờ sau lần tick thì hiện, quá 24 giờ thì ẩn (trừ khi đang mở xem mục đã ẩn)
   const doneHidden=doneAll.filter(r=>r.mocs.every(mocHidden));
   const done=hethanShowHidden?doneAll:doneAll.filter(r=>!r.mocs.every(mocHidden));
   const nHiddenMoc=rows.reduce((s,r)=>s+r.mocs.filter(mocHidden).length,0);
