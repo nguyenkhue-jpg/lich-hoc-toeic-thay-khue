@@ -662,7 +662,7 @@ body{background:var(--bg);color:var(--text);font-size:15px;min-height:100vh}
   <div id="panel-hethan" class="panel">
     <div class="form-card">
       <div class="form-title">⏳ Quản lý lớp hết hạn</div>
-      <div class="form-desc">Theo dõi 2 mốc gỡ nội dung sau khi lớp kết thúc: <b>📑 Slide</b> (buổi cuối + 30 ngày) · <b>🗂️ Toàn bộ nội dung</b> (khai giảng + 6 tháng). Ngoài ra, <b>🎬 Xóa Video B.G</b> nhắc gỡ video <b>từng buổi</b> khi đủ 12 ngày sau ngày học (chỉ áp dụng sau khi lớp kết thúc buổi cuối) — bấm <b>✓ Đã gỡ</b> sau khi gỡ. Tick ✓ sau khi đã gỡ xong — trạng thái đồng bộ cho mọi giáo viên. Mốc đã tick sẽ <b>tự ẩn sau 24 giờ</b> (mốc chưa tick luôn hiển thị). App chỉ nhắc, <b>không tự xóa</b> dữ liệu.</div>
+      <div class="form-desc">Theo dõi 2 mốc gỡ nội dung sau khi lớp kết thúc: <b>📑 Slide</b> (buổi cuối + 30 ngày) · <b>🗂️ Toàn bộ nội dung</b> (khai giảng + 6 tháng). Ngoài ra, <b>🎬 Xóa Video B.G</b> nhắc gỡ video của <b>5 buổi cuối</b> khi đủ 12 ngày sau ngày học (chỉ áp dụng sau khi lớp kết thúc buổi cuối) — bấm <b>✓ Đã gỡ</b> sau khi gỡ. Tick ✓ sau khi đã gỡ xong — trạng thái đồng bộ cho mọi giáo viên. Mốc đã tick sẽ <b>tự ẩn sau 24 giờ</b> (mốc chưa tick luôn hiển thị). App chỉ nhắc, <b>không tự xóa</b> dữ liệu.</div>
       <div id="hethan-list"><div class="loading">⏳ Đang tải dữ liệu...</div></div>
     </div>
   </div>
@@ -955,9 +955,10 @@ function mocDaysLeft(moc){return Math.round((moc.date-today0())/86400000);}
 function hethanPending(lop){return hethanMocs(lop).filter(m=>!m.done&&mocDaysLeft(m)<=-1);}
 /* ===== XÓA VIDEO B.G TỪNG BUỔI =====
    Học viên xem lại video 12 ngày sau mỗi buổi. CHỈ nhắc sau khi lớp đã kết thúc buổi cuối (lớp đang chạy thì
-   giáo viên tự xóa trên Bunny). Khi đó mỗi buổi đủ ngày học + 12 ngày sẽ được nhắc gỡ (vd: học 01/10 → nhắc từ 13/10)
+   giáo viên tự xóa trên Bunny), và chỉ với 5 buổi cuối. Khi đó mỗi buổi đủ ngày học + 12 ngày sẽ được nhắc gỡ (vd: học 01/10 → nhắc từ 13/10)
    cho tới khi giáo viên bấm "✓ Đã gỡ" (lưu b.videoGo=true). */
 const VIDEO_XEM_NGAY=12;
+const VIDEO_SO_BUOI_CUOI=5; // chỉ theo dõi video của 5 buổi cuối chương trình
 const VIDEO_TU_NGAY='2026-09-25'; // chỉ theo dõi buổi từ ngày này — buổi cũ hơn coi như đã gỡ trước khi có tính năng
 function videoItem(l,i,t){
   const b=l.ngayHoc[i],d=pd(b.date),han=addDays(d,VIDEO_XEM_NGAY);
@@ -967,8 +968,11 @@ function videoPending(){
   const t=today0(),from=parseYMD(VIDEO_TU_NGAY),list=[];
   lops.forEach(l=>{
     if(!isEnded(l))return;
+    const last=[];
+    l.ngayHoc.forEach((b,i)=>{if(!b.vang)last.push(i);});
+    const cuoi=new Set(last.slice(-VIDEO_SO_BUOI_CUOI));
     l.ngayHoc.forEach((b,i)=>{
-      if(b.vang||b.videoGo)return;
+      if(!cuoi.has(i)||b.videoGo)return;
       if(pd(b.date)<from)return;
       const v=videoItem(l,i,t);
       if(v.han>t)return;
