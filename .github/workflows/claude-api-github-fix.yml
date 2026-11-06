@@ -1,0 +1,285 @@
+name: Claude Opus 5.5 - Sua code va tao PR
+
+# Cach dung:
+# Actions -> "Claude Opus 5.5 - Sua code va tao PR" -> Run workflow -> chon NHANH (Use workflow from),
+# go yeu cau, chon tran chi phi -> Run workflow.
+# Claude sua code (khong chay lenh), workflow kiem tra cu phap JS trong index.html, roi tao PR NHAP (Draft)
+# vao nhanh ban da chon (hoac nhanh mac dinh neu chay tren main).
+# Can secret ANTHROPIC_API_KEY (Settings -> Secrets and variables -> Actions)
+# va bat Settings -> Actions -> General -> "Allow GitHub Actions to create and approve pull requests".
+
+on:
+  workflow_dispatch:
+    inputs:
+      request:
+        description: 'Yeu cau (tieng Viet duoc). Moi lan MOT viec: tinh nang gi / o man hinh nao / hoat dong the nao / khong duoc doi gi'
+        required: true
+        type: string
+      budget:
+        description: 'Tran chi phi API cho lan chay nay (USD). Viec nho 3-5, vua 10-15, tinh nang lon 25'
+        required: true
+        type: choice
+        default: '10'
+        options:
+          - '3'
+          - '5'
+          - '10'
+          - '15'
+          - '25'
+      title:
+        description: 'Ten ngan cho PR (bo trong thi lay tu yeu cau)'
+        required: false
+        type: string
+
+permissions:
+  contents: write
+  pull-requests: write
+
+# Chi 1 lan chay tai mot thoi diem: tranh 2 lan cung ton tien va cung sua mot cho
+concurrency:
+  group: claude-api-fix
+  cancel-in-progress: false
+
+jobs:
+  fix-and-pr:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 60
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: true
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Install Claude CLI
+        run: npm install -g @anthropic-ai/claude-code
+
+      - name: Let Claude inspect and edit code
+        id: claude
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          USER_REQUEST: ${{ inputs.request }}
+          BUDGET: ${{ inputs.budget }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [[ -z "${ANTHROPIC_API_KEY:-}" ]]; then
+            echo 'Missing ANTHROPIC_API_KEY secret.' >&2
+            exit 1
+          fi
+          case "$BUDGET" in
+            3|5|10|15|25) ;;
+            *) echo "Tran chi phi khong hop le: $BUDGET" >&2; exit 1 ;;
+          esac
+          cat > "$RUNNER_TEMP/claude-instructions.txt" <<'EOF'
+          Ban la tro ly lap trinh vien dang sua hoac them tinh nang cho repository GitHub "lich-hoc-toeic-thay-khue"
+          (web app "Quan ly lich hoc" cua TOEIC Thay Khue: toan bo nam trong MOT file index.html, HTML + CSS + JS thuan, khong co buoc build).
+          Truoc khi sua: doc index.html (doc theo tung doan, file kha lon) de hieu cau truc, ten ham va cach luu du lieu; chi sua phan lien quan.
+
+          Quy tac:
+          - Thay doi it nhat co the, giu phong cach code hien co.
+          - Khong chay lenh terminal, khong truy cap secrets, khong sua GitHub Actions workflows.
+          - Khong xoa hoac lam mat du lieu lop hoc / hoc vien dang luu. Neu doi cau truc du lieu thi phai doc duoc du lieu cu.
+          - Giao dien tieng Viet, cung giong van va kieu dang voi giao dien hien co.
+          - Khong tu tao commit, push, pull request. Workflow se lam cac buoc do va tu kiem tra cu phap JS sau khi ban sua.
+          - Neu khong du thong tin de lam an toan, hay giai thich can hoi them dieu gi va khong sua tuy tien.
+
+          Khi xong, tra loi bang TIENG VIET, ngan gon (toi da 15 dong), gom: (1) da lam gi, (2) cac cho da sua trong index.html,
+          (3) thay nen thu gi tren trang khi mo thu, (4) rui ro hoac phan chua lam.
+
+          Yeu cau cu the:
+          EOF
+          printf '%s\n' "$USER_REQUEST" >> "$RUNNER_TEMP/claude-instructions.txt"
+          # Het ngan sach / het luot thi claude thoat voi ma khac 0: van giu phan da sua de tao PR, khong bo phi cong
+          set +e
+          claude -p "$(cat "$RUNNER_TEMP/claude-instructions.txt")" \
+            --model claude-opus-5-5 \
+            --effort high \
+            --max-turns 150 \
+            --max-budget-usd "$BUDGET" \
+            --permission-mode acceptEdits \
+            --tools 'Read,Edit,Write,Glob,Grep' \
+            --disallowedTools 'Bash,WebFetch,WebSearch,mcp__*' \
+            --output-format json > "$RUNNER_TEMP/claude-out.json" 2> "$RUNNER_TEMP/claude-err.txt"
+          code=$?
+          set -e
+          export LC_ALL=C
+          if jq -e . "$RUNNER_TEMP/claude-out.json" > /dev/null 2>&1; then
+            cost=$(jq -r '.total_cost_usd // 0' "$RUNNER_TEMP/claude-out.json")
+            turns=$(jq -r '.num_turns // 0' "$RUNNER_TEMP/claude-out.json")
+            sub=$(jq -r '.subtype // "khong ro"' "$RUNNER_TEMP/claude-out.json")
+            jq -r '.result // ""' "$RUNNER_TEMP/claude-out.json" > "$RUNNER_TEMP/claude-summary.md"
+          else
+            cost=0; turns=0; sub="khong doc duoc ket qua"
+            { echo "Claude khong tra ket qua doc duoc. Loi:"; tail -c 3000 "$RUNNER_TEMP/claude-err.txt"; } > "$RUNNER_TEMP/claude-summary.md"
+          fi
+          if [[ ! -s "$RUNNER_TEMP/claude-summary.md" ]]; then
+            echo "(Claude khong viet tom tat. Xem phan thay doi trong PR.)" > "$RUNNER_TEMP/claude-summary.md"
+          fi
+          {
+            echo "code=$code"
+            printf 'cost=%.2f\n' "$cost"
+            echo "turns=$turns"
+            echo "subtype=$sub"
+          } >> "$GITHUB_OUTPUT"
+
+      - name: Detect changes
+        id: detect
+        shell: bash
+        run: |
+          set -euo pipefail
+          # Claude khong duoc sua workflow: neu lo sua thi hoan lai, giu cac thay doi con lai
+          if [[ -n "$(git status --porcelain -- .github/workflows/)" ]]; then
+            git checkout -- .github/workflows/
+            git clean -fdq -- .github/workflows/
+            echo 'workflow_reverted=true' >> "$GITHUB_OUTPUT"
+          else
+            echo 'workflow_reverted=false' >> "$GITHUB_OUTPUT"
+          fi
+          if [[ -z "$(git status --porcelain)" ]]; then
+            echo 'changed=false' >> "$GITHUB_OUTPUT"
+          else
+            echo 'changed=true' >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Check JS syntax in HTML files
+        id: check
+        if: steps.detect.outputs.changed == 'true'
+        continue-on-error: true
+        shell: bash
+        run: |
+          set -uo pipefail
+          cat > "$RUNNER_TEMP/check_js.py" <<'PY'
+          import os
+          import re
+          import subprocess
+          import sys
+          import tempfile
+
+          bad = 0
+          total = 0
+          for name in sorted(os.listdir(".")):
+              if not name.endswith(".html"):
+                  continue
+              html = open(name, encoding="utf-8").read()
+              blocks = re.findall(r"<script(?![^>]*\bsrc=)[^>]*>(.*?)</script>", html, re.S | re.I)
+              for i, code in enumerate(blocks, 1):
+                  if not code.strip():
+                      continue
+                  total += 1
+                  with tempfile.NamedTemporaryFile("w", suffix=".js", delete=False, encoding="utf-8") as f:
+                      f.write(code)
+                      path = f.name
+                  r = subprocess.run(["node", "--check", path], capture_output=True, text=True)
+                  os.unlink(path)
+                  if r.returncode != 0:
+                      bad += 1
+                      print("LOI cu phap JS trong " + name + " (khoi script " + str(i) + "):")
+                      print(r.stderr[:1500])
+                  else:
+                      print("OK: " + name + " (khoi script " + str(i) + ")")
+          print("Tong khoi script: " + str(total) + ", loi: " + str(bad))
+          sys.exit(1 if (bad or total == 0) else 0)
+          PY
+          python3 "$RUNNER_TEMP/check_js.py" 2>&1 | tee "$RUNNER_TEMP/check-report.txt"
+          exit "${PIPESTATUS[0]}"
+
+      - name: Create draft PR for review
+        id: pr
+        if: steps.detect.outputs.changed == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          USER_REQUEST: ${{ inputs.request }}
+          TITLE_IN: ${{ inputs.title }}
+          BASE_BRANCH: ${{ github.ref_name }}
+          BUDGET: ${{ inputs.budget }}
+          CODE: ${{ steps.claude.outputs.code }}
+          COST: ${{ steps.claude.outputs.cost }}
+          TURNS: ${{ steps.claude.outputs.turns }}
+          SUBTYPE: ${{ steps.claude.outputs.subtype }}
+          CHECK_OUTCOME: ${{ steps.check.outcome }}
+          WORKFLOW_REVERTED: ${{ steps.detect.outputs.workflow_reverted }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          PR_TITLE="Claude: $(printf '%s' "${TITLE_IN:-$USER_REQUEST}" | PYTHONIOENCODING=utf-8 python3 -c 'import sys; print(" ".join(sys.stdin.read().split())[:70])')"
+          BRANCH="claude/api-fix-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}"
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git switch -c "$BRANCH"
+          git add -A
+          git commit -q -m "$PR_TITLE"
+          git push --set-upstream origin "$BRANCH"
+
+          if [[ "$CHECK_OUTCOME" == "success" ]]; then
+            CHECK_LINE='✅ Cú pháp JavaScript trong file HTML hợp lệ (chỉ kiểm tra cú pháp, không thay cho việc mở trang thử).'
+          else
+            CHECK_LINE='❌ Phát hiện lỗi cú pháp JavaScript. KHÔNG Merge; xem chi tiết bên dưới và chạy lại hoặc nhờ Claude Code sửa tiếp.'
+          fi
+          LIMIT_NOTE=''
+          if [[ "$CODE" != "0" || "$SUBTYPE" != "success" ]]; then
+            LIMIT_NOTE=$'\n> ⚠️ Claude dừng giữa chừng ('"$SUBTYPE"$'): có thể do hết ngân sách hoặc hết lượt. Phần dưới là kết quả dở dang, hãy xem kỹ hoặc chạy lại với trần cao hơn.\n'
+          fi
+          REVERT_NOTE=''
+          if [[ "$WORKFLOW_REVERTED" == "true" ]]; then
+            REVERT_NOTE=$'\n> ⚠️ Claude lỡ sửa file workflow; thay đổi đó đã bị hoàn lại.\n'
+          fi
+          {
+            printf '## Yêu cầu\n%s\n\n' "$USER_REQUEST"
+            printf '## Claude làm gì\n%s\n%s%s\n' "$(head -c 12000 "$RUNNER_TEMP/claude-summary.md")" "$LIMIT_NOTE" "$REVERT_NOTE"
+            printf '## Kiểm tra tự động\n%s\n\n' "$CHECK_LINE"
+            if [[ -f "$RUNNER_TEMP/check-report.txt" ]]; then
+              printf '```\n%s\n```\n\n' "$(head -c 3000 "$RUNNER_TEMP/check-report.txt")"
+            fi
+            printf '## Chi phí\nAPI: **%s USD** (trần %s USD) · %s lượt · trạng thái: %s · [xem lần chạy](%s)\n\n' "$COST" "$BUDGET" "$TURNS" "$SUBTYPE" "$RUN_URL"
+            printf 'PR ở chế độ **Draft**: mở thử trang rồi mới bấm Ready for review → Merge.\n'
+          } > "$RUNNER_TEMP/claude-pr-body.md"
+          PR_URL=$(gh pr create \
+            --base "$BASE_BRANCH" \
+            --head "$BRANCH" \
+            --title "$PR_TITLE" \
+            --body-file "$RUNNER_TEMP/claude-pr-body.md" \
+            --draft)
+          echo "url=$PR_URL" >> "$GITHUB_OUTPUT"
+
+      - name: Summary
+        if: always()
+        env:
+          REQ_BUDGET: ${{ inputs.budget }}
+          CODE: ${{ steps.claude.outputs.code }}
+          COST: ${{ steps.claude.outputs.cost }}
+          TURNS: ${{ steps.claude.outputs.turns }}
+          SUBTYPE: ${{ steps.claude.outputs.subtype }}
+          CHANGED: ${{ steps.detect.outputs.changed }}
+          PR_URL: ${{ steps.pr.outputs.url }}
+          CHECK_OUTCOME: ${{ steps.check.outcome }}
+        shell: bash
+        run: |
+          {
+            echo '## Kết quả lần chạy'
+            echo
+            if [[ -n "${PR_URL:-}" ]]; then
+              echo "**PR nháp:** $PR_URL"
+            elif [[ "${CHANGED:-}" == "false" ]]; then
+              echo '**Claude không sửa file nào, nên không có PR.** Câu trả lời của Claude ở dưới (có thể cần thầy bổ sung thông tin).'
+            else
+              echo '**Chưa tạo được PR.** Xem log các bước phía trên.'
+            fi
+            echo
+            echo "- Chi phí API: **${COST:-?} USD** (trần ${REQ_BUDGET} USD) · ${TURNS:-?} lượt · trạng thái: ${SUBTYPE:-?} · mã thoát ${CODE:-?}"
+            echo "- Kiểm tra cú pháp JS: ${CHECK_OUTCOME:-không chạy}"
+            echo
+            echo '### Claude trả lời'
+            echo
+            if [[ -f "$RUNNER_TEMP/claude-summary.md" ]]; then head -c 12000 "$RUNNER_TEMP/claude-summary.md"; fi
+          } >> "$GITHUB_STEP_SUMMARY"
+          # Claude dung vi loi (khong co thay doi nao de tao PR) thi danh dau do de thay biet
+          if [[ -z "${PR_URL:-}" && "${CHANGED:-}" == "false" && "${CODE:-0}" != "0" ]]; then
+            echo 'Claude dung voi loi va khong sua file nao.' >&2
+            exit 1
+          fi
