@@ -266,19 +266,158 @@ body{background:var(--bg);color:var(--text);font-size:15px;min-height:100vh}
 .cfg-cell label{font-size:12px;font-weight:600;color:var(--text);flex:1;min-width:0}
 .cfg-cell input{width:82px;flex:none;padding:6px 8px;border:1px solid var(--border);border-radius:6px;font-size:13px;font-weight:700}
 .cfg-preview{font-family:'Courier New',monospace;font-size:15px;font-weight:700;color:var(--accent);background:var(--bg2,#f8fafc);border:1px dashed var(--border);border-radius:8px;padding:12px 14px;word-break:break-all}
-.gantt-card{background:#fff;border:1px solid var(--border);border-radius:12px;padding:18px 16px;margin-bottom:16px;overflow-x:auto}
-.gantt-inner{min-width:560px}
-.g-months{display:flex;margin-left:150px;border-bottom:1px solid var(--border);margin-bottom:8px}
-.g-m{font-size:10px;font-weight:700;color:var(--text3);border-left:1px dashed var(--border2);padding:2px 4px;overflow:hidden;white-space:nowrap}
-.g-row{display:flex;align-items:center;margin-bottom:7px}
-.g-label{width:150px;flex-shrink:0;font-size:12px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;padding-right:8px}
-.g-label small{display:block;font-weight:400;font-size:10px;color:var(--text3)}
-.g-track{flex:1;position:relative;height:26px;background:#F8F9FA;border-radius:6px}
-.g-bar{position:absolute;top:3px;bottom:3px;border-radius:6px;font-size:10px;font-weight:700;color:#fff;display:flex;align-items:center;padding:0 6px;white-space:nowrap;overflow:hidden;min-width:8px}
-.g-today{position:absolute;top:-2px;bottom:-2px;width:2px;background:var(--red);z-index:2;border-radius:2px}
-.g-legend{display:flex;gap:14px;margin-top:12px;font-size:11px;color:var(--text3);flex-wrap:wrap;margin-left:150px}
+/* ===== GANTT "TỔNG QUAN THỜI GIAN" (có bộ lọc) ===== */
+.gantt-card{background:#fff;border:1px solid var(--border);border-radius:12px;padding:18px 16px;margin-bottom:16px;position:relative;--gl:180px}
+.g-filters{display:flex;flex-direction:column;gap:8px;margin-bottom:12px;padding-bottom:12px;border-bottom:1px solid var(--border)}
+.g-frow{display:flex;gap:6px;flex-wrap:wrap;align-items:center}
+.g-flbl{font-size:13px;font-weight:700;color:var(--text3);min-width:92px}
+.g-fb{padding:7px 14px;border-radius:20px;border:2px solid var(--border);background:#fff;font-size:13px;font-weight:700;cursor:pointer;font-family:Arial;color:var(--text2);transition:all .15s;user-select:none;white-space:nowrap}
+.g-fb:hover{border-color:var(--border2)}
+.g-fb.on{background:var(--navy);border-color:var(--navy);color:#fff}
+.g-fb .c{font-weight:400;opacity:.8}
+.g-count{font-size:13px;color:var(--text2)}
+.g-count b{color:var(--navy);font-size:15px}
+.g-msum{display:grid;grid-template-columns:repeat(auto-fit,minmax(104px,1fr));gap:6px;margin-bottom:12px}
+.g-ms{border:1px solid var(--border);border-radius:10px;padding:7px 10px;background:#F8FAFC;font-size:13px;color:var(--text2);line-height:1.4}
+.g-ms .m{font-weight:700;color:var(--navy)}
+.g-ms b{font-size:18px;color:var(--text)}
+.g-ms.hot{background:#FFF7ED;border-color:#FDBA74}
+.g-ms.hot b{color:#C2410C}
+.g-scroll{overflow-x:auto;-webkit-overflow-scrolling:touch}
+.gantt-inner{min-width:620px}
+.g-months{display:flex;margin-left:var(--gl);border-bottom:1px solid var(--border);margin-bottom:4px}
+.g-m{font-size:13px;font-weight:700;color:var(--text3);border-left:1px solid var(--border2);padding:2px 4px;overflow:hidden;white-space:nowrap}
+.g-body{position:relative}
+.g-layer{position:absolute;top:0;bottom:0;left:var(--gl);right:0;pointer-events:none}
+.g-wk{position:absolute;top:0;bottom:0;width:1px;background:#EEF0F3;z-index:0}
+.g-wk.m{background:#D5DBE3}
+.g-today{position:absolute;top:-4px;bottom:0;width:2px;background:var(--red);z-index:3;border-radius:2px}
+.g-row{display:flex;align-items:center;min-height:36px;border-bottom:1px dashed #F1F2F4}
+.g-label{width:var(--gl);flex-shrink:0;font-size:13px;font-weight:700;padding:2px 8px 2px 7px;position:sticky;left:0;background:#fff;z-index:4;cursor:pointer;min-width:0;border-left:4px solid var(--border2);line-height:1.3}
+.g-label .t{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.g-label small{display:block;font-weight:400;font-size:13px;color:var(--text3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.g-label.soon small{color:#C2410C;font-weight:700}
+.g-track{flex:1;position:relative;height:32px;z-index:1}
+.g-bar{position:absolute;top:5px;bottom:5px;border-radius:6px;font-size:13px;font-weight:700;color:#fff;display:flex;align-items:center;padding:0 6px;white-space:nowrap;overflow:hidden;min-width:8px;cursor:pointer}
+.g-bar.dk{border:2px dashed}
+.g-bar.soon{box-shadow:0 0 0 3px #F97316}
+.g-bar.cl-l{border-top-left-radius:0;border-bottom-left-radius:0}
+.g-bar.cl-r{border-top-right-radius:0;border-bottom-right-radius:0}
+.g-out{position:absolute;top:50%;transform:translateY(-50%);font-size:13px;color:var(--text3);white-space:nowrap}
+.g-out.l{left:4px}.g-out.r{right:4px}
+.g-ghead{padding:10px 0 4px;margin-top:4px;border-top:1px solid var(--border)}
+.g-ghead span{position:sticky;left:0;display:inline-block;font-size:13px;font-weight:700;color:var(--navy);background:#fff;padding-right:8px}
+.g-empty{text-align:center;padding:20px;color:var(--text3);font-size:13px}
+.g-legend{display:flex;gap:8px 14px;margin-top:12px;font-size:13px;color:var(--text2);flex-wrap:wrap}
 .g-legend span{display:inline-flex;align-items:center;gap:5px}
-.g-lg-dot{width:10px;height:10px;border-radius:3px;display:inline-block}
+.g-lg-dot{width:14px;height:14px;border-radius:3px;display:inline-block}
+.g-tip{position:absolute;z-index:20;background:#fff;border:1px solid var(--border2);border-radius:10px;box-shadow:0 8px 24px rgba(0,0,0,.18);padding:10px 12px;font-size:13px;line-height:1.6;width:270px;max-width:calc(100% - 16px);display:none}
+.g-tip.show{display:block}
+.g-tip .t{display:block;font-size:14px;font-weight:700;overflow-wrap:anywhere;margin-bottom:2px}
+
+/* ===== LỊCH CHI TIẾT (tab Khai giảng dự kiến) ===== */
+.lc-card{background:#fff;border:1px solid var(--border);border-radius:12px;padding:18px 16px;margin-bottom:16px;font-size:14px;scroll-margin-top:110px}
+.lc-head{display:flex;align-items:center;gap:8px 14px;flex-wrap:wrap;margin-bottom:6px}
+.lc-head .form-title{margin:0;flex:1 1 auto}
+.lc-opts{display:flex;gap:8px 14px;align-items:center;flex-wrap:wrap;font-size:13px;color:var(--text2);font-weight:700}
+.lc-opts label{display:inline-flex;align-items:center;gap:6px}
+.lc-opts select,.lc-opts input{height:34px;border:1px solid var(--border2);border-radius:8px;font-size:14px;padding:0 8px;font-family:Arial;background:#fff;color:var(--text)}
+.lc-opts input{width:68px}
+.lc-src{font-size:13px;color:var(--text3);margin-bottom:12px;display:flex;gap:8px;align-items:center;flex-wrap:wrap;line-height:1.6}
+.lc-src b{color:var(--navy)}
+.lc-hint{font-size:13px;color:var(--text2);padding:12px 14px;background:var(--bg);border:1px dashed var(--border2);border-radius:10px;line-height:1.7}
+.lc-sum{display:grid;grid-template-columns:repeat(auto-fit,minmax(128px,1fr));gap:8px;margin-bottom:10px}
+.lc-tile{border:1px solid;border-radius:10px;padding:10px 12px;min-width:0}
+.lc-tile .l{font-size:13px;color:var(--text2);font-weight:700;margin-bottom:2px}
+.lc-tile .v{font-size:21px;font-weight:700;line-height:1.25;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.lc-tile .s{font-size:13px;color:var(--text3);margin-top:2px}
+.lc-cmp{padding:10px 12px;border-radius:10px;background:var(--accent-bg);border:1px solid #BFDBFE;font-size:13px;line-height:1.7;color:var(--text2)}
+.lc-cmp b{color:var(--accent)}
+.lc-sec{font-size:15px;font-weight:700;color:var(--navy);margin:20px 0 8px;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.lc-sec .sub{font-size:13px;font-weight:400;color:var(--text3)}
+.lc-tl-mks{position:relative;height:18px}
+.lc-tl-mks span{position:absolute;top:0;transform:translateX(-50%);font-size:13px;line-height:18px}
+.lc-tl{position:relative;height:40px;background:repeating-linear-gradient(135deg,#F8F9FA 0 6px,#E9ECF0 6px 12px);border-radius:8px;overflow:hidden;border:1px solid var(--border)}
+.lc-tl-b{position:absolute;top:5px;bottom:5px;border-radius:6px;border:1px solid;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;overflow:hidden;white-space:nowrap;min-width:6px;z-index:1}
+.lc-tl-le{position:absolute;top:0;bottom:0;background:rgba(71,85,105,.35);border-left:2px solid #475569;min-width:3px;z-index:2}
+.lc-tl-le.hoc{background:rgba(234,88,12,.25);border-left-color:#EA580C}
+.lc-tl-ax{display:flex;justify-content:space-between;font-size:13px;color:var(--text3);margin:4px 0 6px}
+.lc-cl{display:flex;align-items:center;gap:8px 10px;flex-wrap:wrap;padding:9px 10px;border:1px solid var(--border);border-radius:10px;margin-top:6px}
+.lc-num{width:26px;height:26px;border-radius:50%;border:1px solid;display:inline-flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;flex-shrink:0}
+.lc-cl-name{font-weight:700;font-size:14px;flex:1 1 200px;min-width:0;overflow-wrap:anywhere}
+.lc-cl-d{font-weight:400;font-size:13px;color:var(--text2);margin-top:2px}
+.lc-pill{font-size:13px;font-weight:700;padding:4px 10px;border-radius:14px;background:#EEF2F7;color:#3B5A7E;white-space:nowrap}
+.lc-pill.ok{background:#DCFCE7;color:#166534}
+.lc-gap{font-size:13px;color:var(--text3);padding:6px 0 0 36px}
+.lc-le{border:1px solid var(--border);border-radius:10px;padding:12px;background:#FCFCFD}
+.lc-le-note{font-size:13px;color:var(--text3);line-height:1.6;margin-bottom:10px}
+.lc-warn{background:#FFFBEB;border:1px solid #F5D060;border-radius:8px;padding:8px 10px;font-size:13px;color:#92400E;margin-bottom:8px;line-height:1.6}
+.lc-le-btns{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:6px}
+.lc-le-row{display:flex;align-items:center;gap:6px 10px;flex-wrap:wrap;padding:10px 0;border-top:1px solid var(--border)}
+.lc-le-main{flex:1 1 230px;min-width:0}
+.lc-le-ten{font-weight:700;font-size:14px;display:flex;gap:4px 8px;flex-wrap:wrap;align-items:center}
+.lc-le-d{font-size:13px;color:var(--text2);margin-top:2px}
+.lc-le-gc{font-size:13px;color:var(--text3)}
+.lc-le-eff{font-size:13px;color:var(--text3);margin-top:2px}
+.lc-le-eff.nghi{color:var(--red);font-weight:700}
+.lc-le-eff.hoc{color:#C2410C;font-weight:700}
+.lc-tag{font-size:13px;font-weight:700;padding:1px 8px;border-radius:8px;white-space:nowrap}
+.lc-tag.ct{background:#DCFCE7;color:#166534}
+.lc-tag.dk{background:#FEF3C7;color:#92400E;border:1px solid #FCD34D}
+.lc-tag.rieng{background:var(--accent-bg);color:var(--accent)}
+.lc-tag.sua{background:#F3F4F6;color:var(--text2)}
+.lc-sw{display:inline-flex;border:1px solid var(--border2);border-radius:20px;overflow:hidden;flex-shrink:0}
+.lc-sw button{border:none;background:#fff;padding:7px 14px;font-size:13px;font-weight:700;cursor:pointer;color:var(--text3);font-family:Arial}
+.lc-sw button+button{border-left:1px solid var(--border2)}
+.lc-sw button.on.nghi{background:#475569;color:#fff}
+.lc-sw button.on.hoc{background:#EA580C;color:#fff}
+.lc-ico{width:34px;height:34px;border:1px solid var(--border);border-radius:50%;background:#fff;cursor:pointer;font-size:14px;flex-shrink:0}
+.lc-ico:hover{background:var(--bg)}
+.lc-le-edit,.lc-le-add-f{display:flex;gap:6px 8px;flex-wrap:wrap;align-items:center;font-size:13px;font-weight:700;color:var(--text2)}
+.lc-le-edit{flex-basis:100%;background:var(--bg);border-radius:8px;padding:8px}
+.lc-le-edit label,.lc-le-add-f label{display:inline-flex;align-items:center;gap:5px}
+.lc-le-edit input,.lc-le-add-f input{height:36px;border:1px solid var(--border2);border-radius:8px;padding:0 8px;font-size:14px;font-family:Arial;max-width:100%;background:#fff}
+.lc-le-add-f input[type=text]{flex:1 1 200px}
+.lc-le-add{border-top:1px solid var(--border);padding-top:10px;margin-top:4px}
+.lc-le-add-t{font-size:13px;font-weight:700;color:var(--navy);margin-bottom:6px}
+.lc-le-rl{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}
+.lc-chip{display:inline-flex;align-items:center;gap:6px;font-size:13px;padding:3px 4px 3px 10px;border-radius:14px;background:var(--accent-bg);color:var(--accent);font-weight:700}
+.lc-chip button{border:none;background:rgba(255,255,255,.7);color:var(--red);border-radius:50%;width:24px;height:24px;cursor:pointer;font-size:13px}
+.lc-le-empty{font-size:13px;color:var(--text3);padding:6px 0}
+.lc-months{display:grid;grid-template-columns:repeat(auto-fill,minmax(270px,1fr));gap:12px}
+.lc-mon{border:1px solid var(--border);border-radius:10px;padding:8px;min-width:0}
+.lc-mon-t{font-size:14px;font-weight:700;color:var(--navy);margin-bottom:6px;text-align:center}
+.lc-grid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:3px}
+.lc-dow{font-size:13px;font-weight:700;color:var(--text3);text-align:center;padding:2px 0}
+.lc-d{min-height:44px;border-radius:6px;border:1px solid #EEF0F3;padding:2px 3px;font-size:13px;line-height:1.3;overflow:hidden;position:relative;min-width:0;background:#fff}
+.lc-d .n{font-weight:600;opacity:.85}
+.lc-d .b{font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.lc-d .tag{position:absolute;top:2px;right:3px;font-size:13px;font-weight:700;color:#C2410C;line-height:1.2}
+.lc-d.empty{border:none;background:transparent}
+.lc-d.nghi{background:repeating-linear-gradient(135deg,#F1F5F9 0 5px,#E2E8F0 5px 10px);color:#475569;border-color:#CBD5E1}
+.lc-d.lehoc{background:#FFEDD5;border-color:#FB923C}
+.lc-d.last{outline:3px solid var(--navy);outline-offset:-1px;z-index:1}
+.lc-d.td .n{color:var(--red);text-decoration:underline;opacity:1}
+.lc-legend{display:flex;gap:6px 14px;flex-wrap:wrap;font-size:13px;color:var(--text2);margin-top:10px}
+.lc-legend span{display:inline-flex;align-items:center;gap:5px;overflow-wrap:anywhere}
+.lc-sq{width:16px;height:16px;border-radius:4px;display:inline-block;border:1px solid var(--border2);flex-shrink:0;background:#fff}
+.lc-sq.nghi{background:repeating-linear-gradient(135deg,#F1F5F9 0 3px,#CBD5E1 3px 6px)}
+.lc-sq.lehoc{background:#FFEDD5;border-color:#FB923C}
+.lc-tbl-h{display:flex;align-items:center;gap:10px;width:100%;padding:10px 12px;border:1px solid var(--border);border-radius:10px;background:#fff;cursor:pointer;font-size:14px;font-weight:700;text-align:left;font-family:Arial;margin-top:8px;color:var(--text)}
+.lc-tbl-h:hover{background:#FAFAFA}
+.lc-tbl-h.open{border-radius:10px 10px 0 0}
+.lc-tbl-ht{flex:1;min-width:0;overflow-wrap:anywhere}
+.lc-tbl-ht small{display:block;font-weight:400;font-size:13px;color:var(--text3)}
+.lc-tbl-h .chev{color:var(--text3);transition:transform .2s;flex-shrink:0}
+.lc-tbl-h.open .chev{transform:rotate(180deg)}
+.lc-tbl-w{display:none;max-height:420px;overflow:auto;border:1px solid var(--border);border-top:none;border-radius:0 0 10px 10px}
+.lc-tbl-w.open{display:block}
+.lc-tbl{width:100%;border-collapse:collapse;font-size:13px}
+.lc-tbl th{position:sticky;top:0;background:#F8F9FA;text-align:left;padding:7px 10px;border-bottom:1px solid var(--border);font-weight:700;color:var(--text2);z-index:1}
+.lc-tbl td{padding:7px 10px;border-bottom:1px solid #F1F1F1;vertical-align:top}
+.lc-tbl tr.nghi td{background:#F8FAFC;color:var(--text3)}
+.lc-tbl tr.lehoc td{background:#FFF7ED}
+.lc-tbl tr.last td{background:#FFFBEB;font-weight:700}
 
 /* TOAST */
 .toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:#1a1a1a;color:#fff;padding:10px 20px;border-radius:24px;font-size:13px;font-weight:600;z-index:9999;opacity:0;transition:opacity .3s;pointer-events:none;display:flex;align-items:center;gap:10px;max-width:90vw}
@@ -405,8 +544,13 @@ body{background:var(--bg);color:var(--text);font-size:15px;min-height:100vh}
   .brand span{display:none}
   .lop-stats .mini-stat{min-width:30px}
   .buoi-gio{display:none}
-  .g-label{width:110px}
-  .g-months,.g-legend{margin-left:110px}
+  .gantt-card{--gl:124px;padding:14px 12px}
+  .g-flbl{flex-basis:100%;min-width:0}
+  .lc-card{padding:14px 12px}
+  .lc-tile .v{font-size:19px}
+  .lc-gap{padding-left:10px}
+  .lc-tl-b .dt{display:none}
+  .lc-tbl th,.lc-tbl td{padding:6px 7px}
 }
 </style>
 </head>
@@ -605,10 +749,40 @@ body{background:var(--bg);color:var(--text);font-size:15px;min-height:100vh}
       </div>
     </div>
 
+    <!-- LỊCH CHI TIẾT: từng buổi + ngày lễ + các lớp kế tiếp (chỉ tính trên máy, không ghi Firebase trừ khi bấm Lưu lớp kế tiếp) -->
+    <div class="lc-card" id="lc-card">
+      <div class="lc-head">
+        <div class="form-title">📅 Lịch chi tiết</div>
+        <div class="lc-opts">
+          <label>Số lớp kế tiếp
+            <select id="lc-n" onchange="lcSetN(this.value)"><option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5">5</option></select>
+          </label>
+          <label>Nghỉ giữa 2 lớp
+            <input id="lc-gap" type="number" min="0" max="90" step="1" inputmode="numeric" oninput="lcSetGap(this.value)" onchange="lcGapChuan(this)"> ngày
+          </label>
+        </div>
+      </div>
+      <div class="lc-src" id="lc-src"></div>
+      <div id="lc-body"></div>
+    </div>
+
     <div class="gantt-card" id="gantt-card" style="display:none">
-      <div class="form-title" style="margin-bottom:14px">📈 Tổng quan thời gian</div>
-      <div class="gantt-inner" id="gantt-inner"></div>
-      <div class="g-legend"><span><span class="g-lg-dot" style="background:#94A3B8"></span> Lớp đang chạy</span><span><span class="g-lg-dot" style="background:var(--accent)"></span> Lớp dự kiến (màu theo loại)</span><span style="color:var(--red)">│ Hôm nay</span></div>
+      <div class="form-title" style="margin-bottom:4px">📈 Tổng quan thời gian</div>
+      <div class="form-desc" style="margin-bottom:10px">Bấm nút để lọc (chọn được nhiều nút cùng lúc). Lớp sắp kết thúc xếp lên đầu. Rê chuột hoặc bấm vào thanh để xem chi tiết lớp.</div>
+      <div class="g-filters">
+        <div class="g-frow" id="g-f-loai"></div>
+        <div class="g-frow" id="g-f-gv"></div>
+        <div class="g-frow" id="g-f-st"></div>
+        <div class="g-frow">
+          <input id="g-search" class="ds-search" type="search" placeholder="🔍 Gõ để lọc tên lớp (vd: T246, 18h)" autocomplete="off" oninput="gSearch(this.value)">
+          <span class="g-frow" id="g-f-view"></span>
+        </div>
+        <div class="g-frow"><span class="g-count" id="g-count"></span><button class="btn sm" id="g-clear" onclick="gXoaLoc()">✕ Xóa lọc</button></div>
+      </div>
+      <div class="g-msum" id="g-msum"></div>
+      <div class="g-scroll"><div class="gantt-inner" id="gantt-inner"></div></div>
+      <div class="g-legend" id="g-legend"></div>
+      <div class="g-tip" id="g-tip"></div>
     </div>
 
     <div id="dk-list"></div>
@@ -2061,6 +2235,7 @@ function dkResetForm(){
   selDaysDK=[];renderDayPicker('day-picker-dk',selDaysDK,'toggleDayDK');
   showErr('dk-err',null);
   document.getElementById('dk-kt-box').classList.remove('show');
+  lcRender(); // card "Lịch chi tiết" theo form vừa xóa trắng
 }
 window.dkHuySua=function(){dkResetForm();};
 window.dkSua=function(id){
@@ -2216,6 +2391,7 @@ function renderDuKien(){
         (due?'<div class="dk-due">⚠️ Đã tới ngày khai giảng — nếu lớp đã chốt, hãy nhấn "✓ Chuyển thành lớp chính thức".</div>':'')+
         '<div class="dk-actions">'+
           '<button class="btn sm prim" data-dk-chot="'+esc(d.id)+'" onclick="dkChot(\''+esc(d.id)+'\')"'+(dkChotBusy===d.id?' disabled>Đang lưu...':'>✓ Chuyển thành lớp chính thức')+'</button>'+
+          '<button class="btn sm" onclick="dkXemLich(\''+esc(d.id)+'\')">📅 Xem lịch</button>'+
           '<button class="btn sm" onclick="dkSua(\''+esc(d.id)+'\')">✏️ Sửa</button>'+
           '<button class="btn sm del" onclick="dkXoa(\''+esc(d.id)+'\')">🗑 Xóa</button>'+
         '</div>'+
@@ -2223,57 +2399,699 @@ function renderDuKien(){
     }).join('');
   }
   renderGantt(items);
+  lcOnDuKienChange();
 }
 
-function renderGantt(dkItems){
-  const card=document.getElementById('gantt-card');
+/* ===== GANTT "TỔNG QUAN THỜI GIAN" — CÓ BỘ LỌC =====
+   Dữ liệu lấy y như trước: lớp chính thức chưa kết thúc (theo các buổi không vắng) + lớp dự kiến (tinhNgay).
+   Không đổi cấu trúc dữ liệu. Bộ lọc chỉ lưu trên máy (localStorage 'tk_gantt_loc'). */
+const G_GV_THU_TU=['Thầy Khuê','Cô Vy','Thầy Nam','Khác'];
+const G_ST=[['chay','🟢 Đang chạy','#16a34a'],['sap','⏰ Sắp kết thúc ≤30 ngày','#EA580C'],['dk','🗓️ Dự kiến','#1D6AE5']];
+let gDkItems=[],gRowsView=[],gTipPin=false;
+let gLoc=gDocLoc();
+function gDocLoc(){
+  const v=lsGet('tk_gantt_loc',{})||{};
+  const arr=a=>Array.isArray(a)?a.filter(x=>typeof x==='string'):[];
+  return{loai:arr(v.loai),gv:arr(v.gv),st:arr(v.st),q:typeof v.q==='string'?v.q:'',scale:v.scale===6?6:3,group:v.group===true};
+}
+function gLuuLoc(){lsSet('tk_gantt_loc',gLoc);}
+function gNorm(s){return String(s==null?'':s).toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'').replace(/đ/g,'d');}
+function gRow(x,start,end,official,con,tong){
   const t=today0();
-  const rows=[];
-  // Lớp chính thức đang chạy (mờ)
+  const loai=LOAI_MAIN[x.loai]?x.loai:'other';
+  const left=Math.round((end-t)/86400000);
+  const thu=mlFmtThu(x.thuHoc);
+  const pre=(malopCfg&&malopCfg.prefix&&malopCfg.prefix[loai])||'';
+  return{name:x.ten||'',gv:x.gv||'',gvKey:GV_CLASS[x.gv]?x.gv:'Khác',loai,ca:caOf(x),thu,gio:x.gioBD||'',
+    start,end,official,con,tong,left,soon:left>=0&&left<=30,
+    hay:gNorm([x.ten,x.gv,LOAI_TEN[loai],pre,thu,mlFmtGio(x.gioBD,'2'),x.gioBD].join(' '))};
+}
+function gBuildRows(dkItems){
+  const t=today0(),rows=[];
+  // Lớp chính thức chưa kết thúc
   lops.forEach(l=>{
-    const valid=l.ngayHoc.filter(b=>!b.vang);
+    const valid=(l.ngayHoc||[]).filter(b=>!b.vang);
     if(valid.length===0)return;
     const end=pd(valid[valid.length-1].date);
     if(end<t)return; // đã kết thúc
-    const start=pd(valid[0].date);
-    rows.push({name:l.ten,sub:'Đang chạy · '+l.gv,start:start<t?t:start,end,color:'#94A3B8',official:true});
+    rows.push(gRow(l,pd(valid[0].date),end,true,remainOf(l),valid.length));
   });
-  // Lớp dự kiến (màu theo loại)
-  dkItems.forEach(d=>{
+  // Lớp dự kiến
+  (dkItems||[]).forEach(d=>{
     const dates=tinhNgay(d.ngay,d.thuHoc||[],d.sobuoi);
     if(dates.length===0)return;
-    rows.push({name:d.ten,sub:'Dự kiến · '+d.gv,start:dates[0],end:dates[dates.length-1],color:LOAI_MAIN[d.loai],official:false});
+    rows.push(gRow(d,dates[0],dates[dates.length-1],false,dates.filter(x=>x>=t).length,dates.length));
   });
-  if(rows.length===0){card.style.display='none';return;}
-  card.style.display='block';
-  let min=new Date(t),max=new Date(t);
-  rows.forEach(r=>{if(r.start<min)min=new Date(r.start);if(r.end>max)max=new Date(r.end);});
-  min.setDate(min.getDate()-3);max.setDate(max.getDate()+5);
-  const total=(max-min)/86400000||1;
-  const posP=(d)=>Math.max(0,Math.min(100,((d-min)/86400000)/total*100));
-  // Header tháng
-  let mHtml='';
-  let cursor=new Date(min.getFullYear(),min.getMonth(),1);
-  while(cursor<=max){
-    const mStart=new Date(Math.max(cursor,min));
-    const mEnd=new Date(Math.min(new Date(cursor.getFullYear(),cursor.getMonth()+1,0),max));
-    const w=posP(mEnd)-posP(mStart);
-    if(w>0)mHtml+='<div class="g-m" style="width:'+w+'%">'+(w>7?('T'+(cursor.getMonth()+1)+'/'+cursor.getFullYear()):'')+'</div>';
-    cursor=new Date(cursor.getFullYear(),cursor.getMonth()+1,1);
-  }
-  const todayP=posP(t);
-  const rHtml=rows.map(r=>{
-    const l=posP(r.start),w=Math.max(1.2,posP(r.end)-posP(r.start));
-    return '<div class="g-row">'+
-      '<div class="g-label" title="'+esc(r.name)+'">'+esc(r.name)+'<small>'+esc(r.sub)+'</small></div>'+
-      '<div class="g-track">'+
-        '<div class="g-bar" style="left:'+l+'%;width:'+w+'%;background:'+r.color+(r.official?';opacity:.55':'')+'" title="'+esc(r.name)+': '+fmtDate(r.start)+' → '+fmtDate(r.end)+'">'+(w>16?(fmtDateShort(r.start)+' → '+fmtDateShort(r.end)):'')+'</div>'+
-        '<div class="g-today" style="left:'+todayP+'%"></div>'+
-      '</div>'+
-    '</div>';
-  }).join('');
-  document.getElementById('gantt-inner').innerHTML='<div class="g-months">'+mHtml+'</div>'+rHtml;
+  return rows;
 }
+function gHopSt(r,s){return (s==='chay'&&r.official)||(s==='dk'&&!r.official)||(s==='sap'&&r.soon);}
+function gKhop(r){
+  if(gLoc.loai.length&&!gLoc.loai.includes(r.loai))return false;
+  if(gLoc.gv.length&&!gLoc.gv.includes(r.gvKey))return false;
+  if(gLoc.st.length&&!gLoc.st.some(s=>gHopSt(r,s)))return false;
+  const ws=gNorm(gLoc.q).split(/\s+/).filter(Boolean);
+  return ws.every(w=>r.hay.includes(w));
+}
+function gCoLoc(){return !!(gLoc.loai.length||gLoc.gv.length||gLoc.st.length||gLoc.q.trim());}
+function gNut(nhom,val,html,on,style,title){
+  return '<button class="g-fb'+(on?' on':'')+'"'+(style?' style="'+style+'"':'')+(title?' title="'+esc(title)+'"':'')+
+    ' onclick="gChon(\''+esc(nhom)+'\',\''+esc(val)+'\')">'+html+'</button>';
+}
+function renderGantt(dkItems){
+  gDkItems=dkItems||[];
+  const card=document.getElementById('gantt-card');
+  const all=gBuildRows(gDkItems);
+  gTipTat();
+  if(all.length===0){card.style.display='none';return;}
+  card.style.display='block';
+  const sInp=document.getElementById('g-search');
+  if(sInp&&document.activeElement!==sInp&&sInp.value!==gLoc.q)sInp.value=gLoc.q;
+  gVeBoLoc(all);
+  gVeBieuDo(all);
+}
+function gVeBoLoc(all){
+  const pre=(malopCfg&&malopCfg.prefix)||{};
+  const loaiCo=LOAI_KEYS.filter(k=>gLoc.loai.includes(k)||all.some(r=>r.loai===k));
+  document.getElementById('g-f-loai').innerHTML='<span class="g-flbl">📚 Loại lớp</span>'+
+    gNut('loai','','Tất cả <span class="c">('+all.length+')</span>',!gLoc.loai.length)+
+    loaiCo.map(k=>{
+      const on=gLoc.loai.includes(k),c=LOAI_MAIN[k],n=all.filter(r=>r.loai===k).length;
+      return gNut('loai',k,LOAI_ICON[k]+' '+(pre[k]?esc(pre[k])+' · ':'')+esc(LOAI_TEN[k])+' <span class="c">('+n+')</span>',on,
+        on?'background:'+c+';border-color:'+c+';color:#fff':'border-color:var(--'+k+'-border);color:'+c,LOAI_TEN[k]);
+    }).join('');
+  const gvCo=G_GV_THU_TU.filter(g=>gLoc.gv.includes(g)||all.some(r=>r.gvKey===g));
+  document.getElementById('g-f-gv').innerHTML='<span class="g-flbl">👩‍🏫 Giáo viên</span>'+
+    gNut('gv','','Tất cả',!gLoc.gv.length)+
+    gvCo.map(g=>gNut('gv',g,esc(g)+' <span class="c">('+all.filter(r=>r.gvKey===g).length+')</span>',gLoc.gv.includes(g))).join('');
+  document.getElementById('g-f-st').innerHTML='<span class="g-flbl">🚦 Trạng thái</span>'+
+    gNut('st','','Tất cả',!gLoc.st.length)+
+    G_ST.map(s=>{
+      const on=gLoc.st.includes(s[0]),n=all.filter(r=>gHopSt(r,s[0])).length;
+      return gNut('st',s[0],s[1]+' <span class="c">('+n+')</span>',on,on?'background:'+s[2]+';border-color:'+s[2]+';color:#fff':'border-color:'+s[2]+'66;color:'+s[2]);
+    }).join('');
+  document.getElementById('g-f-view').innerHTML=
+    gNut('scale','3','🔭 3 tháng',gLoc.scale===3)+gNut('scale','6','🔭 6 tháng',gLoc.scale===6)+
+    gNut('group','1','👥 Nhóm theo giáo viên',gLoc.group);
+}
+function gVeBieuDo(all){
+  const t=today0();
+  const view=all.filter(gKhop).sort((a,b)=>(a.end-b.end)||(a.start-b.start)); // sắp kết thúc lên đầu
+  gRowsView=view;
+  document.getElementById('g-count').innerHTML='Đang hiện <b>'+view.length+'/'+all.length+'</b> lớp';
+  document.getElementById('g-clear').style.display=gCoLoc()?'inline-flex':'none';
+  // Dải tổng quan: số lớp kết thúc theo từng tháng (theo bộ lọc đang chọn)
+  let ms='';
+  for(let i=0;i<=gLoc.scale;i++){
+    const m0=new Date(t.getFullYear(),t.getMonth()+i,1),m1=new Date(t.getFullYear(),t.getMonth()+i+1,1);
+    const n=view.filter(r=>r.end>=t&&r.end>=m0&&r.end<m1).length;
+    const lbl='T'+(m0.getMonth()+1)+'/'+m0.getFullYear();
+    ms+='<div class="g-ms'+(n?' hot':'')+'" title="'+lbl+': '+n+' lớp kết thúc'+(n?' — cân nhắc mở lớp thay thế':'')+'"><div class="m">'+lbl+'</div><div><b>'+n+'</b> lớp kết thúc</div></div>';
+  }
+  document.getElementById('g-msum').innerHTML=ms;
+  const inner=document.getElementById('gantt-inner');
+  const leg=document.getElementById('g-legend');
+  if(view.length===0){
+    inner.innerHTML='<div class="g-empty">Không có lớp nào khớp bộ lọc. <button class="btn sm" onclick="gXoaLoc()">✕ Xóa lọc</button></div>';
+    leg.innerHTML='';return;
+  }
+  const min=addDays(t,-7),max=addMonths(t,gLoc.scale);
+  const total=(max-min)/86400000||1;
+  const P=d=>Math.max(0,Math.min(100,((d-min)/86400000)/total*100));
+  // Header tháng
+  let mh='',cur=new Date(min.getFullYear(),min.getMonth(),1);
+  while(cur<max){
+    const nx=new Date(cur.getFullYear(),cur.getMonth()+1,1);
+    const w=P(nx)-P(cur);
+    if(w>0)mh+='<div class="g-m" style="width:'+w+'%">'+(w>9?'T'+(cur.getMonth()+1)+'/'+cur.getFullYear():(w>4?'T'+(cur.getMonth()+1):''))+'</div>';
+    cur=nx;
+  }
+  // Vạch tuần mờ (mỗi thứ Hai), vạch đầu tháng đậm hơn, đường Hôm nay đỏ
+  let lay='',wk=new Date(min);
+  while(wk.getDay()!==1)wk=addDays(wk,1);
+  for(;wk<max;wk=addDays(wk,7))lay+='<div class="g-wk" style="left:'+P(wk)+'%"></div>';
+  for(cur=new Date(min.getFullYear(),min.getMonth()+1,1);cur<max;cur=new Date(cur.getFullYear(),cur.getMonth()+1,1))lay+='<div class="g-wk m" style="left:'+P(cur)+'%"></div>';
+  lay+='<div class="g-today" style="left:'+P(t)+'%"></div>';
+  let rows='';
+  if(gLoc.group){
+    G_GV_THU_TU.forEach(g=>{
+      const rs=view.filter(r=>r.gvKey===g);if(!rs.length)return;
+      const ban=[...new Set(rs.filter(r=>r.start<=t&&r.end>=t).map(r=>CA_SHORT[r.ca]+' '+r.thu+(r.gio?' '+mlFmtGio(r.gio,'2'):'')))];
+      rows+='<div class="g-ghead"><span>👩‍🏫 '+esc(g)+' · '+rs.length+' lớp'+(ban.length?' · đang dạy: '+esc(ban.join(', ')):' · hiện chưa có lớp đang dạy')+'</span></div>';
+      rs.forEach(r=>{rows+=gRowHtml(r,view.indexOf(r),P,min,max);});
+    });
+  }else view.forEach((r,i)=>{rows+=gRowHtml(r,i,P,min,max);});
+  inner.innerHTML='<div class="g-months">'+mh+'</div><div class="g-body"><div class="g-layer">'+lay+'</div>'+rows+'</div>';
+  // Chú giải
+  leg.innerHTML=LOAI_KEYS.filter(k=>view.some(r=>r.loai===k)).map(k=>'<span><i class="g-lg-dot" style="background:'+LOAI_MAIN[k]+'"></i>'+esc(LOAI_TEN[k])+'</span>').join('')+
+    '<span><i class="g-lg-dot" style="border:2px dashed var(--navy);background:#fff"></i>Dự kiến (viền nét đứt)</span>'+
+    '<span><i class="g-lg-dot" style="background:#94A3B8;box-shadow:0 0 0 2px #F97316"></i>Kết thúc trong 30 ngày</span>'+
+    '<span style="color:var(--red);font-weight:700">│ Hôm nay</span><span>Vạch mờ = 1 tuần</span>';
+}
+function gRowHtml(r,i,P,min,max){
+  const c=LOAI_MAIN[r.loai];
+  const endX=addDays(r.end,1);
+  const sub=(r.soon?'⏰ '+(r.left===0?'kết thúc hôm nay':'còn '+r.left+' ngày')+' · ':'')+(r.official?'':'Dự kiến · ')+r.gv+' · '+r.thu+(r.gio?' '+mlFmtGio(r.gio,'2'):'');
+  let tr;
+  if(endX<=min)tr='<div class="g-out l">← kết thúc '+fmtDate(r.end)+'</div>';
+  else if(r.start>=max)tr='<div class="g-out r">KG '+fmtDate(r.start)+' →</div>';
+  else{
+    const l=P(r.start),w=Math.max(1,P(endX)-l);
+    const st=r.official?'background:'+c+';color:#fff':'background:repeating-linear-gradient(135deg,var(--'+r.loai+'-bg) 0 6px,#fff 6px 12px);border-color:'+c+';color:'+c;
+    const txt=w>18?fmtDateShort(r.start)+' → '+fmtDateShort(r.end):(w>8?'→ '+fmtDateShort(r.end):'');
+    tr='<div class="g-bar'+(r.official?'':' dk')+(r.soon?' soon':'')+(r.start<min?' cl-l':'')+(endX>max?' cl-r':'')+'" style="left:'+l+'%;width:'+w+'%;'+st+'" onmouseenter="gTip(event,'+i+')" onmouseleave="gTipAn()" onclick="gTip(event,'+i+',1)">'+txt+'</div>';
+  }
+  return '<div class="g-row"><div class="g-label'+(r.soon?' soon':'')+'" style="border-left-color:'+c+'" title="'+esc(r.name)+'" onclick="gTip(event,'+i+',1)">'+
+    '<span class="t" style="color:'+c+'">'+esc(r.name)+'</span><small>'+esc(sub)+'</small></div><div class="g-track">'+tr+'</div></div>';
+}
+function gTipTat(){gTipPin=false;const tp=document.getElementById('g-tip');if(tp)tp.classList.remove('show');}
+window.gTipAn=function(){if(!gTipPin)gTipTat();};
+// Thẻ chi tiết lớp: rê chuột (máy tính) hoặc bấm (điện thoại) vào thanh / tên lớp
+window.gTip=function(e,i,click){
+  const r=gRowsView[i];if(!r)return;
+  const tip=document.getElementById('g-tip'),card=document.getElementById('gantt-card');
+  const t=today0(),c=LOAI_MAIN[r.loai];
+  const tt=r.official?(r.start>t?'✅ Chính thức · sắp khai giảng':'🟢 Đang chạy'):'🗓️ Lớp dự kiến';
+  const kt=r.left>0?' (còn '+r.left+' ngày)':(r.left===0?' (hôm nay)':' (đã qua)');
+  tip.innerHTML='<span class="t" style="color:'+c+'">'+LOAI_ICON[r.loai]+' '+esc(r.name)+'</span>'+
+    '<div>👩‍🏫 <b>'+esc(r.gv)+'</b> · '+esc(LOAI_TEN[r.loai])+' · '+CA_SHORT[r.ca]+'</div>'+
+    '<div>🗓️ '+esc(r.thu)+(r.gio?' · '+esc(r.gio):'')+'</div>'+
+    '<div>🚀 Bắt đầu: <b>'+DAYS[r.start.getDay()]+' '+fmtDate(r.start)+'</b></div>'+
+    '<div>🏁 Kết thúc: <b>'+DAYS[r.end.getDay()]+' '+fmtDate(r.end)+'</b>'+kt+'</div>'+
+    '<div>📚 Còn <b>'+r.con+'</b>/'+r.tong+' buổi</div>'+
+    '<div style="color:var(--text3)">'+tt+'</div>';
+  tip.classList.add('show');
+  const cr=card.getBoundingClientRect(),br=e.currentTarget.getBoundingClientRect();
+  const w=tip.offsetWidth;
+  const cx=(typeof e.clientX==='number'&&e.clientX>0)?e.clientX:(br.left+br.width/2);
+  tip.style.left=Math.max(8,Math.min(cr.width-w-8,cx-cr.left-w/2))+'px';
+  tip.style.top=(br.bottom-cr.top+6)+'px';
+  gTipPin=!!click;
+};
+document.addEventListener('click',e=>{
+  if(!gTipPin)return;
+  if(e.target&&e.target.closest&&e.target.closest('.g-bar,.g-label,.g-tip'))return;
+  gTipTat();
+});
+window.gChon=function(nhom,val){
+  if(nhom==='scale')gLoc.scale=val==='6'?6:3;
+  else if(nhom==='group')gLoc.group=!gLoc.group;
+  else if(nhom==='loai'||nhom==='gv'||nhom==='st'){
+    if(!val)gLoc[nhom]=[];
+    else{const a=gLoc[nhom],i=a.indexOf(val);if(i>=0)a.splice(i,1);else a.push(val);}
+  }else return;
+  gLuuLoc();renderGantt(gDkItems);
+};
+window.gSearch=function(v){gLoc.q=String(v||'');gLuuLoc();gTipTat();gVeBieuDo(gBuildRows(gDkItems));};
+window.gXoaLoc=function(){
+  gLoc.loai=[];gLoc.gv=[];gLoc.st=[];gLoc.q='';gLuuLoc();
+  const s=document.getElementById('g-search');if(s)s.value='';
+  renderGantt(gDkItems);
+};
+
+/* ===== NGÀY LỄ — DỮ LIỆU MẶC ĐỊNH (dùng cho card "📅 Lịch chi tiết") =====
+   Nguồn (đã tra, ghi lại theo yêu cầu của thầy Khuê):
+   - Bộ luật Lao động 2019, Điều 112: Tết Dương lịch 1 ngày (01/01); Tết Âm lịch 5 ngày; Giỗ Tổ Hùng Vương 1 ngày (10/3 âm lịch);
+     Chiến thắng 30/4: 1 ngày; Quốc tế Lao động 01/5: 1 ngày; Quốc khánh 2 ngày (02/9 + 1 ngày liền kề trước hoặc sau).
+     Lễ trùng ngày nghỉ hằng tuần thì được nghỉ bù. Ngày nghỉ cụ thể từng năm do Thủ tướng quyết định.
+   - 2026 — CHÍNH THỨC (đã có thông báo/quyết định): Tết Bính Ngọ nghỉ 14/02/2026–22/02/2026 (mùng 1 = 17/02/2026);
+     Giỗ Tổ 26/04/2026 (CN) → khoảng nghỉ 25/04–27/04/2026; 30/04/2026 và 01/05/2026;
+     Quốc khánh khoảng 29/08/2026–02/09/2026 (nghỉ thêm 01/09 hoặc 03/09 tùy phương án).
+   - 2027 — DỰ KIẾN: Tết Đinh Mùi mùng 1 = 06/02/2027 (T7); phương án Bộ Nội vụ trình Chính phủ nghỉ 04/02–10/02/2027 (7 ngày),
+     CHƯA có quyết định của Thủ tướng. Giỗ Tổ 16/04/2027 (T6). 30/04/2027 (T6), 01/05/2027 (T7). Quốc khánh 02/09/2027 (T5) + 03/09 (mặc định).
+   - 2028 — DỰ KIẾN (suy ra từ lịch âm, chưa có quyết định): Tết Mậu Thân mùng 1 = 26/01/2028, khoảng nghỉ mặc định 25/01–29/01/2028;
+     Giỗ Tổ 04/04/2028; 30/04 và 01/05/2028; Quốc khánh 02/09/2028 + 1 ngày liền kề.
+   - Tết Dương lịch 2027, 2028: chỉ đặt 01/01 (chưa có thông báo nghỉ bù) → DỰ KIẾN.
+   - Từ 2029: chỉ tự sinh lễ dương lịch cố định (01/01, 30/04, 01/05, 02/09) dạng DỰ KIẾN. KHÔNG tự đoán Tết/Giỗ Tổ —
+     giao diện hiện cảnh báo để thầy thêm tay ở mục "Lễ riêng".
+   Định dạng ngày: dd/mm/yyyy. ct:true = Chính thức, ct:false = Dự kiến. Sửa khoảng ngày trên giao diện được lưu
+   localStorage 'tk_le_sua' (đè lên bảng này); tick Nghỉ/Vẫn học lưu 'tk_le_tick'; lễ riêng lưu 'tk_le_rieng'. Không ghi Firebase. */
+const LE_MAC_DINH=[
+  {id:'tdl2026',ten:'Tết Dương lịch',ngan:'Tết DL',tu:'01/01/2026',den:'01/01/2026',ct:true},
+  {id:'tet2026',ten:'Tết Nguyên đán Bính Ngọ',ngan:'Tết',tu:'14/02/2026',den:'22/02/2026',ct:true,gc:'Mùng 1 Tết = 17/02/2026'},
+  {id:'gt2026',ten:'Giỗ Tổ Hùng Vương',ngan:'Giỗ Tổ',tu:'25/04/2026',den:'27/04/2026',ct:true,gc:'10/3 âm lịch = 26/04/2026 (CN)'},
+  {id:'gp2026',ten:'Ngày Giải phóng miền Nam 30/4',ngan:'30/4',tu:'30/04/2026',den:'30/04/2026',ct:true},
+  {id:'ld2026',ten:'Quốc tế Lao động 1/5',ngan:'1/5',tu:'01/05/2026',den:'01/05/2026',ct:true},
+  {id:'qk2026',ten:'Quốc khánh 2/9',ngan:'QK',tu:'29/08/2026',den:'02/09/2026',ct:true,gc:'Nghỉ thêm 01/09 hoặc 03/09 tùy phương án — đối chiếu thông báo'},
+  {id:'tdl2027',ten:'Tết Dương lịch',ngan:'Tết DL',tu:'01/01/2027',den:'01/01/2027',ct:false,gc:'Chưa có thông báo nghỉ bù'},
+  {id:'tet2027',ten:'Tết Nguyên đán Đinh Mùi',ngan:'Tết',tu:'04/02/2027',den:'10/02/2027',ct:false,gc:'Mùng 1 = 06/02/2027 (T7). Phương án Bộ Nội vụ trình — chưa có quyết định của Thủ tướng'},
+  {id:'gt2027',ten:'Giỗ Tổ Hùng Vương',ngan:'Giỗ Tổ',tu:'16/04/2027',den:'16/04/2027',ct:false},
+  {id:'gp2027',ten:'Ngày Giải phóng miền Nam 30/4',ngan:'30/4',tu:'30/04/2027',den:'30/04/2027',ct:false},
+  {id:'ld2027',ten:'Quốc tế Lao động 1/5',ngan:'1/5',tu:'01/05/2027',den:'01/05/2027',ct:false},
+  {id:'qk2027',ten:'Quốc khánh 2/9',ngan:'QK',tu:'02/09/2027',den:'03/09/2027',ct:false,gc:'Ngày liền kề có thể là 01/09 hoặc 03/09 (mặc định 03/09)'},
+  {id:'tdl2028',ten:'Tết Dương lịch',ngan:'Tết DL',tu:'01/01/2028',den:'01/01/2028',ct:false,gc:'Chưa có thông báo nghỉ bù'},
+  {id:'tet2028',ten:'Tết Nguyên đán Mậu Thân',ngan:'Tết',tu:'25/01/2028',den:'29/01/2028',ct:false,gc:'Mùng 1 = 26/01/2028 (suy ra từ lịch âm) — khoảng nghỉ mặc định 5 ngày'},
+  {id:'gt2028',ten:'Giỗ Tổ Hùng Vương',ngan:'Giỗ Tổ',tu:'04/04/2028',den:'04/04/2028',ct:false,gc:'Suy ra từ lịch âm'},
+  {id:'gp2028',ten:'Ngày Giải phóng miền Nam 30/4',ngan:'30/4',tu:'30/04/2028',den:'30/04/2028',ct:false},
+  {id:'ld2028',ten:'Quốc tế Lao động 1/5',ngan:'1/5',tu:'01/05/2028',den:'01/05/2028',ct:false},
+  {id:'qk2028',ten:'Quốc khánh 2/9',ngan:'QK',tu:'02/09/2028',den:'03/09/2028',ct:false,gc:'02/09 + 1 ngày liền kề (mặc định 03/09) — chưa có thông báo'}
+];
+const LE_NAM_CO_DU_LIEU=[2026,2027,2028]; // các năm đã có dữ liệu Tết/Giỗ Tổ
+const LE_CO_DINH=[ // lễ dương lịch cố định — tự sinh cho các năm ngoài bảng trên (DỰ KIẾN)
+  {k:'tdl',md:'01/01',ten:'Tết Dương lịch',ngan:'Tết DL'},
+  {k:'gp',md:'30/04',ten:'Ngày Giải phóng miền Nam 30/4',ngan:'30/4'},
+  {k:'ld',md:'01/05',ten:'Quốc tế Lao động 1/5',ngan:'1/5'},
+  {k:'qk',md:'02/09',ten:'Quốc khánh 2/9',ngan:'QK',gc:'Chưa có ngày nghỉ liền kề (01/09 hoặc 03/09) — sửa khi có thông báo'}
+];
+function dmyToYmd(s){const p=String(s).split('/');return p[2]+'-'+p[1]+'-'+p[0];}
+function objLs(k){const v=lsGet(k,{});return v&&typeof v==='object'&&!Array.isArray(v)?v:{};}
+const LE_YMD=/^\d{4}-\d{2}-\d{2}$/;
+let leTick=objLs('tk_le_tick');   // {idLễ:'hoc'} — không có trong object = Nghỉ (mặc định)
+let leSua=objLs('tk_le_sua');     // {idLễ:{tu,den}} — khoảng ngày thầy tự chỉnh, đè lên dữ liệu mặc định
+let leRieng=(()=>{const v=lsGet('tk_le_rieng',[]);return Array.isArray(v)?v.filter(r=>r&&r.id&&r.ten&&LE_YMD.test(r.tu||'')&&LE_YMD.test(r.den||'')):[];})();
+let lcOpt=(()=>{const v=objLs('tk_lc_opt');const n=parseInt(v.n),g=parseInt(v.gap);return{n:n>=1&&n<=5?n:3,gap:g>=0&&g<=90?g:0};})();
+let lcSrc=null;         // null = lớp đang nhập ở form; id = lớp dự kiến đã lưu (nút 📅 Xem lịch)
+let lcLast=null;        // kết quả tính gần nhất (dùng cho nút Lưu lớp kế tiếp)
+let lcLeEdit=null;      // id lễ đang mở sửa khoảng ngày
+let lcLuuBusy=false;    // chặn bấm 2 lần khi đang lưu lớp kế tiếp
+const lcTblOpen=new Set([0]); // bảng chi tiết đang mở (mặc định: lớp đang xếp)
+const LC_SO=['①','②','③','④','⑤','⑥'];
+
+// Danh sách lễ giao với khoảng [a,b] (Date): mặc định (+ phần thầy sửa) + lễ cố định tự sinh + lễ riêng
+function leDanhSach(a,b){
+  const out=[];
+  const push=(l,rieng)=>{
+    const s=!rieng&&leSua[l.id]&&LE_YMD.test(leSua[l.id].tu||'')&&LE_YMD.test(leSua[l.id].den||'')?leSua[l.id]:null;
+    const tu=s?s.tu:l.tu,den=s?s.den:l.den;
+    const dTu=parseYMD(tu),dDen=parseYMD(den);
+    if(isNaN(dTu)||isNaN(dDen)||dDen<a||dTu>b)return;
+    out.push(Object.assign({},l,{tu,den,dTu,dDen,rieng:!!rieng,sua:!!s}));
+  };
+  LE_MAC_DINH.forEach(l=>push({id:l.id,ten:l.ten,ngan:l.ngan,tu:dmyToYmd(l.tu),den:dmyToYmd(l.den),ct:l.ct,gc:l.gc||''},false));
+  for(let y=a.getFullYear();y<=b.getFullYear();y++){
+    if(LE_NAM_CO_DU_LIEU.includes(y))continue;
+    LE_CO_DINH.forEach(c=>{
+      const ymd=dmyToYmd(c.md+'/'+y);
+      push({id:c.k+y,ten:c.ten,ngan:c.ngan,tu:ymd,den:ymd,ct:false,gc:c.gc||'Lễ dương lịch cố định — nghỉ bù (nếu có) chưa có thông báo'},false);
+    });
+  }
+  leRieng.forEach(r=>push({id:r.id,ten:r.ten,ngan:r.ten,tu:r.tu,den:r.den,ct:true,gc:''},true));
+  out.sort((x,y)=>x.dTu-y.dTu);
+  return out;
+}
+/* Giống tinhNgay() nhưng BỎ QUA các ngày học rơi vào khoảng lễ đang ở trạng thái "Nghỉ" (leDaChon).
+   Buổi bị bỏ không tính vào tổng → lịch kéo dài ra cuối. leDaChon rỗng → kết quả y hệt tinhNgay(). */
+function tinhNgayVoiLe(startStr,thuHoc,so,leDaChon){
+  const res=[],boQua=[];let cur=parseYMD(startStr);
+  const sorted=[...thuHoc].sort((a,b)=>a-b);
+  const ds=(leDaChon||[]).map(l=>({l,tu:parseYMD(l.tu),den:parseYMD(l.den)}));
+  let cnt=0,safe=0;
+  while(cnt<so&&safe<6000){
+    if(sorted.includes(cur.getDay())){
+      const h=ds.find(x=>cur>=x.tu&&cur<=x.den);
+      if(h)boQua.push({date:new Date(cur),le:h.l});
+      else{res.push(new Date(cur));cnt++;}
+    }
+    cur.setDate(cur.getDate()+1);safe++;
+  }
+  return{dates:res,boQua};
+}
+// Lớp đang xếp + n lớp kế tiếp nối nhau (cùng thứ học, số buổi); lớp sau bắt đầu ở ngày học đầu tiên SAU (kết thúc + gap ngày)
+function lcTinhChuoi(src,n,gap,leNghi){
+  const out=[];let start=src.ngay;
+  for(let k=0;k<=n;k++){
+    const r=tinhNgayVoiLe(start,src.thuHoc,src.sobuoi,leNghi);
+    if(r.dates.length<src.sobuoi)break;
+    const end=r.dates[r.dates.length-1];
+    out.push({k,start:r.dates[0],end,dates:r.dates,boQua:r.boQua,ngay:ymdStr(r.dates[0])});
+    start=ymdStr(addDays(end,1+gap));
+  }
+  return out;
+}
+// Tên lớp kế tiếp: dùng bộ sinh tên lớp dự kiến (genMaLop theo cấu hình) nếu mẫu có {ngay}; nếu không thì "Tên lớp #số"
+function lcTenKeTiep(src,k,ngay){
+  const tpl=(malopCfg&&malopCfg.template)||'';
+  const ten=tpl.indexOf('{ngay}')>=0?genMaLop({loai:src.loai,ngay,thuHoc:src.thuHoc,gioBD:src.gioBD,gv:src.gv},malopCfg):src.ten+' #'+(k+1);
+  return ten.slice(0,80);
+}
+function lcDaCo(ten,ngay){return Object.values(dukien||{}).some(d=>d&&d.ngay===ngay&&d.ten===ten);}
+function lcNgayHopLe(s){const m=/^(\d{4})-\d{2}-\d{2}$/.exec(s||'');return !!m&&+m[1]>=2000&&+m[1]<=2100&&!isNaN(parseYMD(s));}
+function thuDay(d){return DAY_NAMES[(d.getDay()+6)%7];}
+function lcNgay(d){return DAYS[d.getDay()]+' '+fmtDate(d);}
+// Màu từng lớp trong chuỗi: lớp đang xếp đậm, các lớp kế tiếp nhạt/vừa xen kẽ (cùng màu loại lớp)
+function lcShade(L,k){
+  const c=LOAI_MAIN[L];
+  if(k===0)return 'background:'+c+';color:#fff;border-color:'+c;
+  if(k%2===1)return 'background:var(--'+L+'-bg);color:'+c+';border-color:var(--'+L+'-border)';
+  return 'background:var(--'+L+'-border);color:'+c+';border-color:'+c;
+}
+// Nguồn dữ liệu cho card: lớp đã lưu (Xem lịch) hoặc form đang nhập; chưa đủ thông tin → null
+function lcLayNguon(){
+  if(lcSrc){
+    const d=dukien[lcSrc];
+    if(d){
+      const so=parseInt(d.sobuoi)||0,thu=[...(d.thuHoc||[])].sort((a,b)=>a-b);
+      if(!lcNgayHopLe(d.ngay)||!thu.length||so<1||so>200)return null;
+      return{ten:d.ten||'',loai:d.loai,ca:caOf(d),gv:d.gv,ngay:d.ngay,gioBD:d.gioBD||'',gioKT:d.gioKT||'',sobuoi:so,thuHoc:thu};
+    }
+    lcSrc=null;
+  }
+  const ngay=document.getElementById('dk-ngay').value;
+  const so=parseInt(document.getElementById('dk-sobuoi').value)||0;
+  if(!lcNgayHopLe(ngay)||selDaysDK.length===0||so<1||so>200)return null;
+  return{ten:document.getElementById('dk-ten').value.trim()||dkAutoTen(),loai:curLoaiDK,ca:curCaDK,gv:document.getElementById('dk-gv').value,ngay,
+    gioBD:document.getElementById('dk-gio-bd').value,gioKT:document.getElementById('dk-gio-kt').value,sobuoi:so,thuHoc:[...selDaysDK].sort((a,b)=>a-b)};
+}
+function lcTinhToan(src){
+  const n=lcOpt.n,gap=lcOpt.gap,a=parseYMD(src.ngay);
+  const none=lcTinhChuoi(src,n,gap,[]); // kịch bản "Học tất cả lễ" = đúng như dkCompute()/tinhNgay()
+  if(!none.length)return null;
+  let yTo=none[none.length-1].end.getFullYear()+1,cand=[],all=[];
+  for(let lap=0;lap<3;lap++){
+    cand=leDanhSach(a,new Date(yTo,11,31));
+    all=lcTinhChuoi(src,n,gap,cand); // kịch bản "Nghỉ tất cả lễ" (dài nhất)
+    if(!all.length)return null;
+    const e=all[all.length-1].end;
+    if(e.getFullYear()<=yTo)break;
+    yTo=e.getFullYear()+1;
+  }
+  const maxEnd=all[all.length-1].end;
+  const listLe=cand.filter(l=>l.dDen>=a&&l.dTu<=maxEnd);
+  const leNghi=listLe.filter(l=>leTick[l.id]!=='hoc');
+  const leHoc=listLe.filter(l=>leTick[l.id]==='hoc');
+  const chain=leNghi.length?lcTinhChuoi(src,n,gap,leNghi):none;
+  if(!chain.length)return null;
+  const eff={};listLe.forEach(l=>{eff[l.id]={nghi:0,hoc:0};});
+  chain.forEach((c,k)=>{
+    c.boQua.forEach(b=>{if(eff[b.le.id])eff[b.le.id].nghi++;});
+    c.leHocAt=c.dates.map(d=>{const l=leHoc.find(x=>d>=x.dTu&&d<=x.dDen);if(l)eff[l.id].hoc++;return l||null;});
+    c.ten=k===0?src.ten:lcTenKeTiep(src,k,c.ngay);
+    c.daCo=k>0&&lcDaCo(c.ten,c.ngay);
+  });
+  // Năm chưa có dữ liệu Tết/Giỗ Tổ → cảnh báo (không tự đoán ngày âm lịch)
+  const warn=[];
+  for(let y=a.getFullYear();y<=maxEnd.getFullYear();y++){
+    if(LE_NAM_CO_DU_LIEU.includes(y))continue;
+    const rs=leRieng.filter(x=>x.tu.slice(0,4)===String(y)||x.den.slice(0,4)===String(y)).map(x=>gNorm(x.ten));
+    const thieu=[];
+    if(!rs.some(s=>s.includes('tet')&&!s.includes('duong')))thieu.push('Tết');
+    if(!rs.some(s=>s.includes('gio to')))thieu.push('Giỗ Tổ');
+    if(thieu.length)warn.push('Chưa có dữ liệu '+thieu.join('/')+' năm '+y+' — hãy thêm tay ở mục lễ riêng bên dưới (app không tự đoán ngày âm lịch).');
+  }
+  return{src,L:LOAI_MAIN[src.loai]?src.loai:'other',chain,none,all,listLe,eff,warn,maxEnd};
+}
+function lcRender(){
+  const body=document.getElementById('lc-body'),srcEl=document.getElementById('lc-src');
+  if(!body||!srcEl)return;
+  const src=lcLayNguon();
+  srcEl.innerHTML=(lcSrc&&src)
+    ?'👁️ Đang xem lớp dự kiến đã lưu: <b>'+esc(src.ten)+'</b> <button class="btn sm" onclick="lcVeForm()">↩ Xem lớp đang nhập ở form</button>'
+    :'Lịch của lớp đang nhập ở form phía trên — tự cập nhật khi đổi bất kỳ ô nào (không cần Lưu). Bấm <b>📅 Xem lịch</b> ở lớp đã lưu để xem lớp đó.';
+  if(!src){
+    lcLast=null;
+    body.innerHTML='<div class="lc-hint">👉 Chọn <b>ngày khai giảng</b>, ít nhất <b>1 thứ học</b> và <b>số buổi</b> (1–200) ở form trên — lịch từng buổi, ngày lễ và các lớp kế tiếp sẽ hiện ngay tại đây.</div>';
+    return;
+  }
+  const r=lcTinhToan(src);
+  if(!r){lcLast=null;body.innerHTML='<div class="lc-hint">⚠️ Không xếp đủ '+src.sobuoi+' buổi với thứ học đã chọn — kiểm tra lại thông tin.</div>';return;}
+  lcLast=r;
+  body.innerHTML=lcHtmlTomTat(r)+lcHtmlDongThoiGian(r)+lcHtmlLe(r)+lcHtmlLichThang(r)+lcHtmlBang(r);
+}
+function lcHtmlTomTat(r){
+  const s=r.src,c0=r.chain[0],L=r.L,col=LOAI_MAIN[L];
+  const tile=(lbl,v,sub)=>'<div class="lc-tile" style="background:var(--'+L+'-bg);border-color:var(--'+L+'-border)"><div class="l">'+lbl+'</div><div class="v" style="color:'+col+'">'+v+'</div>'+(sub?'<div class="s">'+sub+'</div>':'')+'</div>';
+  const nNghi=c0.boQua.length,nHoc=c0.leHocAt.filter(Boolean).length;
+  const weeks=Math.ceil((c0.end-c0.start)/(7*86400000))+1; // cùng công thức với dkCompute()
+  const soNgay=Math.round((c0.end-c0.start)/86400000)+1;
+  let h='<div class="lc-sum">'+
+    tile('🚀 Khai giảng',fmtDate(c0.start),thuDay(c0.start)+(ymdStr(c0.start)!==s.ngay?' · ngày chọn '+fmtDateShort(parseYMD(s.ngay)):''))+
+    tile('🏁 Buổi cuối',fmtDate(c0.end),thuDay(c0.end)+(nNghi?' · <b style="color:var(--red)">đã trừ '+nNghi+' ngày lễ</b>':''))+
+    tile('📚 Tổng buổi',String(s.sobuoi),s.thuHoc.map(d=>DAYS[d]).join(' · ')+(s.gioBD?' · '+esc(s.gioBD):''))+
+    tile('🎉 Ngày lễ ảnh hưởng',String(nNghi+nHoc),(nNghi+nHoc)?'nghỉ '+nNghi+' · vẫn học '+nHoc:'không vướng lễ')+
+    tile('⏳ Thời lượng',weeks+' tuần',soNgay+' ngày')+
+  '</div>';
+  const eA=r.all[0].end,eN=r.none[0].end,diff=Math.round((eA-eN)/86400000);
+  h+='<div class="lc-cmp">⚖️ Nghỉ tất cả lễ: kết thúc <b>'+lcNgay(eA)+'</b> &nbsp;|&nbsp; Học tất cả lễ: kết thúc <b>'+lcNgay(eN)+'</b> &nbsp;|&nbsp; Chênh <b>'+diff+' ngày</b>'+
+    (nNghi?'<br>👉 Theo lựa chọn Nghỉ/Vẫn học hiện tại: buổi cuối <b>'+lcNgay(c0.end)+'</b> (đã trừ '+nNghi+' ngày lễ). Ngày kết thúc ở form và danh sách lớp dự kiến vẫn tính <i>chưa trừ lễ</i>.':'')+'</div>';
+  return h;
+}
+function lcHtmlDongThoiGian(r){
+  const ch=r.chain,L=r.L;
+  const t0=ch[0].start,t1=addDays(ch[ch.length-1].end,1),tot=(t1-t0)/86400000||1;
+  const P=d=>Math.max(0,Math.min(100,(d-t0)/86400000/tot*100));
+  let tl='',mk='';
+  ch.forEach((c,k)=>{
+    const l=P(c.start),w=Math.max(1.5,P(addDays(c.end,1))-l);
+    tl+='<div class="lc-tl-b" style="left:'+l+'%;width:'+w+'%;'+lcShade(L,k)+'" title="'+esc(LC_SO[k]+' '+c.ten+': '+fmtDate(c.start)+' → '+fmtDate(c.end))+'">'+LC_SO[k]+(w>16?'<span class="dt">&nbsp;'+fmtDateShort(c.start)+'–'+fmtDateShort(c.end)+'</span>':'')+'</div>';
+  });
+  r.listLe.forEach(l=>{
+    const e=r.eff[l.id];if(!e||(!e.nghi&&!e.hoc))return;
+    const a=l.dTu<t0?t0:l.dTu,bEnd=addDays(l.dDen,1),b=bEnd>t1?t1:bEnd;
+    const x=P(a),w=Math.max(.8,P(b)-x);
+    const tt=(e.nghi?'Nghỉ lễ ':'Vẫn học lễ ')+l.ten+' ('+fmtDate(l.dTu)+(l.tu!==l.den?' → '+fmtDate(l.dDen):'')+')';
+    tl+='<div class="lc-tl-le'+(e.nghi?'':' hoc')+'" style="left:'+x+'%;width:'+w+'%" title="'+esc(tt)+'"></div>';
+    mk+='<span style="left:'+Math.max(2,Math.min(98,x+w/2))+'%" title="'+esc(tt)+'">'+(e.nghi?'⛔':'🎉')+'</span>';
+  });
+  let list='';
+  ch.forEach((c,k)=>{
+    if(k>0){
+      const g=Math.round((c.start-ch[k-1].end)/86400000)-1;
+      list+='<div class="lc-gap">⏸ Nghỉ giữa 2 lớp: <b>'+g+' ngày</b>'+(g>0?' ('+fmtDateShort(addDays(ch[k-1].end,1))+' → '+fmtDateShort(addDays(c.start,-1))+')':'')+'</div>';
+    }
+    const nl=c.boQua.length;
+    list+='<div class="lc-cl"><span class="lc-num" style="'+lcShade(L,k)+'">'+(k+1)+'</span>'+
+      '<div class="lc-cl-name">'+esc(c.ten)+'<div class="lc-cl-d">'+lcNgay(c.start)+' → <b>'+lcNgay(c.end)+'</b> · '+c.dates.length+' buổi'+(nl?' · <span style="color:var(--red)">dời '+nl+' buổi vì lễ</span>':'')+'</div></div>'+
+      (k===0?'<span class="lc-pill">'+(lcSrc?'Lớp đang xem':'Lớp đang xếp')+'</span>':
+        (c.daCo?'<span class="lc-pill ok">✓ Đã có trong danh sách</span>':'<button class="btn sm success" data-lc-luu="1" onclick="lcLuuKeTiep('+k+')"'+(lcLuuBusy?' disabled':'')+'>➕ Lưu thành lớp dự kiến</button>'))+
+    '</div>';
+  });
+  const chuaCo=ch.filter((c,k)=>k>0&&!c.daCo).length;
+  return '<div class="lc-sec">🧭 Lớp đang xếp + '+(ch.length-1)+' lớp kế tiếp'+
+      (chuaCo?'<button class="btn sm success" style="margin-left:auto" data-lc-luu="1" onclick="lcLuuTatCa()"'+(lcLuuBusy?' disabled':'')+'>➕ Lưu tất cả lớp kế tiếp ('+chuaCo+')</button>':'')+'</div>'+
+    '<div class="lc-tl-mks">'+mk+'</div><div class="lc-tl">'+tl+'</div>'+
+    '<div class="lc-tl-ax"><span>'+fmtDate(t0)+'</span><span>'+fmtDate(ch[ch.length-1].end)+'</span></div>'+list;
+}
+function lcHtmlLe(r){
+  let h='<div class="lc-sec">🎉 Ngày lễ trong khoảng lịch <span class="sub">'+fmtDate(parseYMD(r.src.ngay))+' → '+fmtDate(r.maxEnd)+'</span></div><div class="lc-le">'+
+    '<div class="lc-le-note">ℹ️ Theo Bộ luật Lao động 2019 (Điều 112): Tết Nguyên đán nghỉ 5 ngày, Quốc khánh 2 ngày, các lễ khác 1 ngày. Ngày nghỉ cụ thể do Thủ tướng quyết định mỗi năm nên mục <b>Dự kiến</b> phải đối chiếu thông báo chính thức. Chỉ lễ <b>trùng ngày học</b> mới làm thay đổi lịch.</div>';
+  r.warn.forEach(w=>{h+='<div class="lc-warn">⚠️ '+esc(w)+'</div>';});
+  if(r.listLe.length){
+    h+='<div class="lc-le-btns"><button class="btn sm" onclick="leTatCa(\'nghi\')">⛔ Nghỉ tất cả</button><button class="btn sm" onclick="leTatCa(\'hoc\')">✅ Học tất cả lễ</button></div>';
+    r.listLe.forEach(l=>{
+      const e=r.eff[l.id]||{nghi:0,hoc:0},nghi=leTick[l.id]!=='hoc',id=esc(l.id);
+      const so=Math.round((l.dDen-l.dTu)/86400000)+1;
+      const rng=l.tu===l.den?lcNgay(l.dTu):lcNgay(l.dTu)+' → '+lcNgay(l.dDen)+' ('+so+' ngày)';
+      const tag=l.rieng?'<span class="lc-tag rieng">Lễ riêng</span>':(l.ct?'<span class="lc-tag ct">Chính thức</span>':'<span class="lc-tag dk">Dự kiến - chưa chính thức</span>');
+      const eff=e.nghi?'<div class="lc-le-eff nghi">⛔ Trùng '+e.nghi+' buổi học → các buổi dời ra sau</div>'
+        :(e.hoc?'<div class="lc-le-eff hoc">✅ Vẫn học '+e.hoc+' buổi trong lễ</div>':'<div class="lc-le-eff">Không ảnh hưởng lịch này</div>');
+      h+='<div class="lc-le-row"><div class="lc-le-main">'+
+          '<div class="lc-le-ten">🎉 '+esc(l.ten)+' '+tag+(l.sua?'<span class="lc-tag sua">✏️ đã chỉnh</span>':'')+'</div>'+
+          '<div class="lc-le-d">📆 '+rng+'</div>'+(l.gc?'<div class="lc-le-gc">'+esc(l.gc)+'</div>':'')+eff+
+        '</div>'+
+        '<div class="lc-sw"><button class="'+(nghi?'on nghi':'')+'" onclick="leDat(\''+id+'\',\'nghi\')">⛔ Nghỉ</button><button class="'+(nghi?'':'on hoc')+'" onclick="leDat(\''+id+'\',\'hoc\')">✅ Vẫn học</button></div>'+
+        '<button class="lc-ico" title="Sửa khoảng ngày" onclick="leSuaMo(\''+id+'\')">✏️</button>'+
+        (l.rieng?'<button class="lc-ico" title="Xóa lễ riêng" onclick="leXoa(\''+id+'\')">🗑</button>':'')+
+        (lcLeEdit===l.id?'<div class="lc-le-edit"><label>Từ <input type="date" id="le-e-tu" value="'+esc(l.tu)+'"></label><label>đến <input type="date" id="le-e-den" value="'+esc(l.den)+'"></label>'+
+          '<button class="btn sm prim" onclick="leSuaLuu(\''+id+'\')">💾 Lưu</button><button class="btn sm" onclick="leSuaMo(\'\')">Hủy</button>'+
+          (l.sua?'<button class="btn sm" onclick="leKhoiPhuc(\''+id+'\')">↩ Về mặc định</button>':'')+'</div>':'')+
+      '</div>';
+    });
+  }else h+='<div class="lc-le-empty">Không có ngày lễ nào rơi vào khoảng lịch này.</div>';
+  h+='<div class="lc-le-add"><div class="lc-le-add-t">➕ Lễ riêng của trung tâm (lưu trên máy này)</div>'+
+    '<div class="lc-le-add-f"><input id="le-r-ten" type="text" maxlength="40" placeholder="Tên (vd: Nghỉ hè trung tâm)">'+
+    '<label>Từ <input id="le-r-tu" type="date"></label><label>Đến <input id="le-r-den" type="date"></label>'+
+    '<button class="btn sm prim" onclick="leThem()">➕ Thêm</button></div>'+
+    (leRieng.length?'<div class="lc-le-rl">'+leRieng.map(x=>{
+      const a=parseYMD(x.tu),b=parseYMD(x.den);
+      return '<span class="lc-chip">'+esc(x.ten)+' · '+(x.tu===x.den?fmtDate(a):fmtDateShort(a)+'–'+fmtDate(b))+'<button title="Xóa" onclick="leXoa(\''+esc(x.id)+'\')">✕</button></span>';
+    }).join('')+'</div>':'')+
+  '</div></div>';
+  return h;
+}
+function lcHtmlLichThang(r){
+  const ch=r.chain,L=r.L;
+  const first=parseYMD(r.src.ngay),last=ch[ch.length-1].end;
+  const months=[];
+  let m=new Date(first.getFullYear(),first.getMonth(),1);
+  const mEnd=new Date(last.getFullYear(),last.getMonth(),1);
+  while(m<=mEnd&&months.length<18){months.push(m);m=new Date(m.getFullYear(),m.getMonth()+1,1);}
+  const cut=m<=mEnd;
+  const calA=months[0],lm=months[months.length-1],calB=new Date(lm.getFullYear(),lm.getMonth()+1,0);
+  const info={};
+  r.listLe.forEach(l=>{
+    if(leTick[l.id]==='hoc')return;
+    let d=l.dTu<calA?new Date(calA):new Date(l.dTu);
+    const e=l.dDen>calB?calB:l.dDen;
+    while(d<=e){const k=ymdStr(d);if(!info[k])info[k]={le:l};d=addDays(d,1);}
+  });
+  ch.forEach((c,k)=>c.dates.forEach((d,i)=>{info[ymdStr(d)]={k,stt:i+1,last:i===c.dates.length-1,leHoc:c.leHocAt[i],ten:c.ten};}));
+  const tdy=ymdStr(today0());
+  let h='<div class="lc-sec">🗓️ Lịch tháng <span class="sub">'+(cut?'hiện 18 tháng đầu':'từ khai giảng tới hết lớp kế tiếp cuối cùng')+'</span></div><div class="lc-months">';
+  months.forEach(mo=>{
+    h+='<div class="lc-mon"><div class="lc-mon-t">Tháng '+(mo.getMonth()+1)+'/'+mo.getFullYear()+'</div><div class="lc-grid">'+
+      ['T2','T3','T4','T5','T6','T7','CN'].map(x=>'<div class="lc-dow">'+x+'</div>').join('');
+    const off=(mo.getDay()+6)%7;
+    for(let i=0;i<off;i++)h+='<div class="lc-d empty"></div>';
+    const nd=new Date(mo.getFullYear(),mo.getMonth()+1,0).getDate();
+    for(let dd=1;dd<=nd;dd++){
+      const d=new Date(mo.getFullYear(),mo.getMonth(),dd),key=ymdStr(d),x=info[key];
+      let cls='lc-d',st='',lbl='',tag='',tt=thuDay(d)+' '+fmtDate(d);
+      if(x&&x.stt){
+        if(x.last)cls+=' last';
+        if(x.leHoc){cls+=' lehoc';st='color:'+LOAI_MAIN[L];tag='lễ';}
+        else st=lcShade(L,x.k);
+        lbl=(x.last?'★':'B')+x.stt;
+        tt+=' · '+LC_SO[x.k]+' '+x.ten+' · Buổi '+x.stt+(x.last?' (BUỔI CUỐI)':'')+(x.leHoc?' · vẫn học lễ '+x.leHoc.ten:'');
+      }else if(x&&x.le){cls+=' nghi';lbl=x.le.ngan||x.le.ten;tt+=' · Nghỉ lễ '+x.le.ten;}
+      if(key===tdy){cls+=' td';tt+=' · Hôm nay';}
+      h+='<div class="'+cls+'"'+(st?' style="'+st+'"':'')+' title="'+esc(tt)+'"><div class="n">'+dd+'</div>'+(tag?'<span class="tag">'+tag+'</span>':'')+(lbl?'<div class="b">'+esc(lbl)+'</div>':'')+'</div>';
+    }
+    h+='</div></div>';
+  });
+  h+='</div><div class="lc-legend">'+
+    ch.map((c,k)=>'<span><i class="lc-sq" style="'+lcShade(L,k)+'"></i>'+LC_SO[k]+' '+esc(c.ten)+'</span>').join('')+
+    '<span><i class="lc-sq" style="outline:3px solid var(--navy);outline-offset:-1px"></i>★ Buổi cuối</span>'+
+    '<span><i class="lc-sq nghi"></i>Nghỉ lễ</span><span><i class="lc-sq lehoc"></i>Lễ vẫn học</span><span><i class="lc-sq"></i>Không học</span>'+
+    '<span style="color:var(--red)"><u>12</u>&nbsp;Hôm nay</span></div>';
+  return h;
+}
+function lcHtmlBang(r){
+  const L=r.L;
+  let h='<div class="lc-sec">📋 Chi tiết từng buổi</div>';
+  r.chain.forEach((c,k)=>{
+    const open=lcTblOpen.has(k);
+    const items=c.dates.map((d,i)=>({d,i})).concat(c.boQua.map(b=>({d:b.date,le:b.le}))).sort((x,y)=>x.d-y.d);
+    let rows='',chuaDoi=null;
+    items.forEach(x=>{
+      if(x.le){
+        rows+='<tr class="nghi"><td>—</td><td>'+fmtDate(x.d)+'</td><td>'+thuDay(x.d)+'</td><td>⛔ Nghỉ lễ '+esc(x.le.ten)+'</td></tr>';
+        chuaDoi=x.le;return;
+      }
+      const last=x.i===c.dates.length-1,lh=c.leHocAt[x.i],notes=[];
+      if(x.i===0)notes.push('🚀 Khai giảng');
+      if(chuaDoi){notes.push('↪ Dời vì lễ '+chuaDoi.ten);chuaDoi=null;}
+      if(lh)notes.push('🎉 Vẫn học — lễ '+lh.ten);
+      if(last)notes.push('🏁 Buổi cuối');
+      rows+='<tr class="'+(last?'last':'')+(lh?' lehoc':'')+'"><td><b>'+(x.i+1)+'</b></td><td>'+fmtDate(x.d)+'</td><td>'+thuDay(x.d)+'</td><td>'+esc(notes.join(' · '))+'</td></tr>';
+    });
+    h+='<button class="lc-tbl-h'+(open?' open':'')+'" id="lc-th-'+k+'" onclick="lcToggleTbl('+k+')"><span class="lc-num" style="'+lcShade(L,k)+'">'+(k+1)+'</span>'+
+      '<span class="lc-tbl-ht">'+esc(c.ten)+'<small>'+fmtDate(c.start)+' → '+fmtDate(c.end)+' · '+c.dates.length+' buổi'+(c.boQua.length?' · '+c.boQua.length+' ngày lễ nghỉ':'')+'</small></span><span class="chev">▾</span></button>'+
+      '<div class="lc-tbl-w'+(open?' open':'')+'" id="lc-tb-'+k+'"><table class="lc-tbl"><thead><tr><th>Buổi</th><th>Ngày</th><th>Thứ</th><th>Ghi chú</th></tr></thead><tbody>'+rows+'</tbody></table></div>';
+  });
+  return h;
+}
+// Dữ liệu dự kiến thay đổi (Firebase) → vẽ lại card, trừ khi thầy đang gõ trong card
+function lcOnDuKienChange(){
+  const a=document.activeElement,card=document.getElementById('lc-card');
+  if(a&&card&&card.contains(a)&&a.tagName==='INPUT')return;
+  lcRender();
+}
+function lcInit(){
+  const n=document.getElementById('lc-n'),g=document.getElementById('lc-gap');
+  if(n)n.value=String(lcOpt.n);
+  if(g)g.value=String(lcOpt.gap);
+  lcRender();
+}
+// Form thay đổi → dkCompute() chạy như cũ, sau đó vẽ card Lịch chi tiết theo form (không đổi kết quả dkCompute)
+const dkComputeGoc=window.dkCompute;
+window.dkCompute=function(){dkComputeGoc();lcSrc=null;lcRender();};
+window.dkXemLich=function(id){
+  if(!dukien[id])return;
+  lcSrc=id;lcLeEdit=null;lcRender();
+  const c=document.getElementById('lc-card');if(c)c.scrollIntoView({behavior:'smooth',block:'start'});
+};
+window.lcVeForm=function(){lcSrc=null;lcRender();};
+window.lcSetN=function(v){const n=parseInt(v);if(n>=1&&n<=5){lcOpt.n=n;lsSet('tk_lc_opt',lcOpt);lcRender();}};
+window.lcSetGap=function(v){
+  const s=String(v==null?'':v).trim();
+  if(!/^\d+$/.test(s))return;
+  const g=parseInt(s,10);if(g<0||g>90)return;
+  lcOpt.gap=g;lsSet('tk_lc_opt',lcOpt);lcRender();
+};
+window.lcGapChuan=function(el){el.value=String(lcOpt.gap);};
+window.lcToggleTbl=function(k){
+  const open=!lcTblOpen.has(k);
+  if(open)lcTblOpen.add(k);else lcTblOpen.delete(k);
+  const h=document.getElementById('lc-th-'+k),b=document.getElementById('lc-tb-'+k);
+  if(h)h.classList.toggle('open',open);
+  if(b)b.classList.toggle('open',open);
+};
+window.leDat=function(id,st){
+  if(st==='hoc')leTick[id]='hoc';else delete leTick[id];
+  lsSet('tk_le_tick',leTick);lcRender();
+};
+window.leTatCa=function(st){
+  if(!lcLast)return;
+  lcLast.listLe.forEach(l=>{if(st==='hoc')leTick[l.id]='hoc';else delete leTick[l.id];});
+  lsSet('tk_le_tick',leTick);lcRender();
+  showToast(st==='hoc'?'✅ Đã chọn: vẫn học tất cả ngày lễ':'⛔ Đã chọn: nghỉ tất cả ngày lễ');
+};
+window.leSuaMo=function(id){lcLeEdit=(id&&lcLeEdit!==id)?id:null;lcRender();};
+window.leSuaLuu=function(id){
+  const tuEl=document.getElementById('le-e-tu'),denEl=document.getElementById('le-e-den');if(!tuEl||!denEl)return;
+  const tu=tuEl.value,den=denEl.value||tu;
+  if(!lcNgayHopLe(tu)||!lcNgayHopLe(den)){showToast('⚠️ Chọn đủ ngày bắt đầu và kết thúc của kỳ lễ');return;}
+  if(den<tu){showToast('⚠️ Ngày kết thúc lễ phải sau hoặc bằng ngày bắt đầu');return;}
+  const r=leRieng.find(x=>x.id===id);
+  if(r){r.tu=tu;r.den=den;lsSet('tk_le_rieng',leRieng);}
+  else{leSua[id]={tu,den};lsSet('tk_le_sua',leSua);}
+  lcLeEdit=null;lcRender();showToast('💾 Đã lưu khoảng ngày lễ (trên máy này)');
+};
+window.leKhoiPhuc=function(id){
+  delete leSua[id];lsSet('tk_le_sua',leSua);
+  lcLeEdit=null;lcRender();showToast('↩ Đã khôi phục ngày lễ mặc định');
+};
+window.leThem=function(){
+  const ten=document.getElementById('le-r-ten').value.trim();
+  const tu=document.getElementById('le-r-tu').value;
+  const den=document.getElementById('le-r-den').value||tu;
+  if(!ten){showToast('⚠️ Nhập tên lễ riêng');return;}
+  if(!lcNgayHopLe(tu)||!lcNgayHopLe(den)){showToast('⚠️ Chọn ngày bắt đầu (và ngày kết thúc nếu nghỉ nhiều ngày)');return;}
+  if(den<tu){showToast('⚠️ Ngày kết thúc lễ phải sau hoặc bằng ngày bắt đầu');return;}
+  leRieng.push({id:'r'+Date.now(),ten:ten.slice(0,40),tu,den});
+  lsSet('tk_le_rieng',leRieng);lcRender();
+  showToast('✅ Đã thêm lễ riêng "'+ten+'"');
+};
+window.leXoa=function(id){
+  const r=leRieng.find(x=>x.id===id);if(!r)return;
+  showConfirm('Xóa lễ riêng','Xóa lễ riêng "'+r.ten+'"? (chỉ xóa trên máy này)','🗑 Xóa',true,()=>{
+    leRieng=leRieng.filter(x=>x.id!==id);delete leTick[id];
+    lsSet('tk_le_rieng',leRieng);lsSet('tk_le_tick',leTick);
+    if(lcLeEdit===id)lcLeEdit=null;
+    lcRender();showToast('🗑 Đã xóa lễ riêng');
+  });
+};
+// Bản ghi lớp dự kiến cho lớp kế tiếp — ĐÚNG các trường như dkLuu(), ghi vào dukien/{user}/{id}
+function lcBanGhi(c,i){
+  const s=lcLast.src;
+  return{id:'dk_'+Date.now()+'_'+Math.floor(Math.random()*1000)+'_'+i,ten:c.ten,loai:s.loai,ca:s.ca==='am'?'am':'pm',gv:s.gv,ngay:c.ngay,
+    gioBD:s.gioBD,gioKT:s.gioKT,sobuoi:s.sobuoi,thuHoc:[...s.thuHoc].sort((a,b)=>a-b),ghichu:('Lớp kế tiếp sau '+s.ten).slice(0,200),created:Date.now()};
+}
+function lcNutBan(b){document.querySelectorAll('[data-lc-luu]').forEach(x=>{x.disabled=b;});}
+window.lcLuuKeTiep=async function(k){
+  if(lcLuuBusy)return; // chặn bấm đúp khi đang lưu
+  if(!curUser){showToast('Vui lòng đăng nhập trước.');return;}
+  const c=lcLast&&lcLast.chain[k];if(!c||k<1)return;
+  if(lcDaCo(c.ten,c.ngay)){showToast('ℹ️ Đã có lớp dự kiến "'+c.ten+'" khai giảng '+fmtDate(c.start));lcRender();return;}
+  const obj=lcBanGhi(c,k);
+  const err=validateLopForm(obj.ten,obj.ngay,obj.gioBD,obj.gioKT,obj.sobuoi,obj.thuHoc);
+  if(err){showToast('⚠️ '+err);return;}
+  lcLuuBusy=true;lcNutBan(true);setSyncStatus('saving');
+  try{
+    await set(ref(db,'dukien/'+curUser.key+'/'+obj.id),obj);
+    setSyncStatus('ok');showToast('✅ Đã lưu lớp dự kiến '+obj.ten);
+  }catch(e){setSyncStatus('err');showToast('❌ Lỗi lưu: '+e.message);}
+  finally{lcLuuBusy=false;lcRender();}
+};
+window.lcLuuTatCa=async function(){
+  if(lcLuuBusy)return;
+  if(!curUser){showToast('Vui lòng đăng nhập trước.');return;}
+  if(!lcLast)return;
+  const ds=lcLast.chain.filter((c,k)=>k>0&&!lcDaCo(c.ten,c.ngay));
+  if(!ds.length){showToast('ℹ️ Các lớp kế tiếp đều đã có trong danh sách dự kiến');lcRender();return;}
+  const upd={};let err=null;
+  ds.forEach(c=>{
+    const o=lcBanGhi(c,c.k);
+    err=err||validateLopForm(o.ten,o.ngay,o.gioBD,o.gioKT,o.sobuoi,o.thuHoc);
+    upd['dukien/'+curUser.key+'/'+o.id]=o;
+  });
+  if(err){showToast('⚠️ '+err);return;}
+  lcLuuBusy=true;lcNutBan(true);setSyncStatus('saving');
+  try{
+    await update(ref(db),upd); // ghi cùng lúc — lỗi thì không lớp nào được tạo
+    setSyncStatus('ok');showToast('✅ Đã lưu '+ds.length+' lớp dự kiến kế tiếp');
+  }catch(e){setSyncStatus('err');showToast('❌ Lỗi lưu: '+e.message);}
+  finally{lcLuuBusy=false;lcRender();}
+};
 
 /* ===== CHƯƠNG TRÌNH ===== */
 window.switchCT=function(loai){
@@ -2736,6 +3554,7 @@ renderCaPicker('ca-row-main',curCa,'selCa');
 renderCaPicker('ca-row-dk',curCaDK,'selCaDK');
 renderDayPicker('day-picker-main',selDaysMain,'toggleDayMain');
 renderDayPicker('day-picker-dk',selDaysDK,'toggleDayDK');
+lcInit(); // card "📅 Lịch chi tiết" (tab Khai giảng dự kiến)
 renderCTTabs();
 renderToday();
 setSyncStatus('loading');
