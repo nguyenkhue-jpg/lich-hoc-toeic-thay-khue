@@ -410,13 +410,14 @@ svg.i{width:18px;height:18px;flex:none;stroke:currentColor;fill:none;stroke-widt
 .lc-months{display:grid;grid-template-columns:repeat(auto-fill,minmax(270px,1fr));gap:12px}
 .lc-mon{border:1px solid var(--line);border-radius:var(--r-sm);padding:10px;min-width:0;background:#fff}
 .lc-mon-t{font-size:14px;font-weight:700;color:var(--text);margin-bottom:8px;text-align:center}
-.lc-grid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:3px}
+.lc-grid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:2px}
 .lc-dow{font-size:13px;font-weight:700;color:var(--dim);text-align:center;padding:2px 0;letter-spacing:.3px}
-.lc-d{min-height:44px;border-radius:8px;border:1px solid #edf1f8;padding:3px 4px;font-size:13px;line-height:1.3;overflow:hidden;position:relative;min-width:0;background:#fff}
-.lc-d .n{font-family:var(--mono);font-size:13px;font-weight:500;opacity:.8}
-.lc-d .b{font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.lc-d .tag{position:absolute;top:2px;right:3px;font-size:13px;font-weight:700;color:#b6500c;line-height:1.2}
+.lc-d{min-height:40px;border-radius:7px;border:1px solid #edf1f8;padding:3px 2px;font-size:12px;line-height:1.25;text-align:center;overflow:hidden;position:relative;min-width:0;background:#fff}
+.lc-d .n{font-family:var(--mono);font-size:11px;font-weight:500;opacity:.8}
+.lc-d .b{font-size:11.5px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:clip;letter-spacing:-.3px;margin-top:1px}
+.lc-d .tag{position:absolute;top:1px;right:2px;font-size:9.5px;font-weight:700;color:#b6500c;line-height:1.2}
 .lc-d.empty{border:none;background:transparent}
+.lc-d.nghi .b{white-space:normal;overflow-wrap:anywhere;font-size:10.5px;line-height:1.15;letter-spacing:-.2px}
 .lc-d.nghi{background:repeating-linear-gradient(135deg,#f6f8fb 0 4px,#e9edf3 4px 8px);color:var(--dim);border-color:#e1e6ef}
 .lc-d.lehoc{background:#fff6ee;border-color:#f8c79e}
 .lc-d.last{box-shadow:inset 0 0 0 2px var(--text2);z-index:1}
@@ -538,6 +539,11 @@ svg.i{width:18px;height:18px;flex:none;stroke:currentColor;fill:none;stroke-widt
 .hh-moc input[type=checkbox]{width:18px;height:18px;flex-shrink:0;cursor:pointer;accent-color:var(--green)}
 .hh-moc-body{flex:1;min-width:0}
 .hh-moc-lbl{font-weight:700;color:var(--text)}
+/* Thẻ Xóa Video B.G: nội dung chiếm trọn hàng trên, nhãn + nút xuống hàng dưới → không bị ép chữ xuống từng dòng */
+.hh-vid{flex-wrap:wrap;row-gap:6px;min-height:0;padding:9px 12px}
+.hh-vid .hh-moc-body{flex:1 1 100%;line-height:1.5}
+.hh-vid .hh-moc-lbl{white-space:nowrap}
+.hh-vid .hh-pill{margin-right:auto}
 .hh-moc-lbl svg.i{width:15px;height:15px;margin-right:6px;color:var(--muted);vertical-align:-2px}
 .hh-pill{font-size:12px;font-weight:700;padding:1px 9px;border-radius:99px;white-space:nowrap;flex-shrink:0;line-height:1.7}
 .hh-pill.ok{background:#eef1f6;color:var(--muted)}
@@ -577,9 +583,6 @@ svg.i{width:18px;height:18px;flex:none;stroke:currentColor;fill:none;stroke-widt
 @keyframes spin{to{transform:rotate(360deg)}}
 
 @media(max-width:640px){
-  .hh-vid{flex-wrap:wrap}
-  .hh-vid .hh-moc-body{flex-basis:100%}
-  .hh-vid .btn{margin-left:auto}
   .topbar{padding:8px 12px}
   .main{padding:14px 12px 44px}
   .tabs-wrap{padding:6px 8px}
