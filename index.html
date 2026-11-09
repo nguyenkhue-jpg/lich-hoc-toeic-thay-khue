@@ -2101,8 +2101,13 @@ function renderDS(){
   if(q)show=show.filter(l=>normVN(l.ten).includes(q)||normVN(l.gv).includes(q)||normVN(l.ghichu||'').includes(q));
   if(fgv)show=show.filter(l=>fgv==='Khác'?!GV_CLASS[l.gv]:l.gv===fgv);
   if(floai)show=show.filter(l=>l.loai===floai);
-  // Sắp xếp theo ngày khai giảng — lớp khai giảng trước nằm trên
-  show.sort((a,b)=>(a.ngay||'9999-99-99').localeCompare(b.ngay||'9999-99-99')||(a.gioBD||'').localeCompare(b.gioBD||''));
+  // Sắp xếp theo ngày khai giảng trong mã lớp (DDMMYY, vd A1_040127_...) — lớp mới nhất nằm trên cùng
+  const kgKey=l=>{
+    const m=String(l.ten||'').match(/(?:^|_)(\d{2})(\d{2})(\d{2})(?=_|$)/);
+    if(m&&+m[2]>=1&&+m[2]<=12&&+m[1]>=1&&+m[1]<=31)return '20'+m[3]+'-'+m[2]+'-'+m[1];
+    return l.ngay||'0000-00-00';
+  };
+  show.sort((a,b)=>kgKey(b).localeCompare(kgKey(a))||(b.gioBD||'').localeCompare(a.gioBD||''));
   let extra='';
   if(!dsStatus&&hideEnded&&endedCount>0)extra+='<div class="ds-hidden-note">Đang ẩn '+endedCount+' lớp đã kết thúc — nhấn nút phía trên để hiện lại.</div>';
   if(q||fgv||floai||dsStatus)extra+='<div class="ds-hidden-note">Hiển thị <b>'+show.length+'/'+lops.length+'</b> lớp theo bộ lọc — <a style="color:var(--accent);cursor:pointer;font-weight:700" onclick="clearDSFilter()">✕ Xóa bộ lọc</a></div>';
