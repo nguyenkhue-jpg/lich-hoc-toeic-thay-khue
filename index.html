@@ -905,6 +905,27 @@ svg.i{width:18px;height:18px;flex:none;stroke:currentColor;fill:none;stroke-widt
     <div class="form-card">
       <div class="form-title">Quản lý lớp hết hạn</div>
       <div class="form-desc">Theo dõi 2 mốc gỡ nội dung sau khi lớp kết thúc: <b>Slide</b> (buổi cuối + 30 ngày) · <b>Toàn bộ nội dung</b> (khai giảng + 6 tháng). Ngoài ra, <b>Xóa Video B.G</b> nhắc gỡ video của <b>5 buổi cuối</b> khi đủ 12 ngày sau ngày học (chỉ áp dụng sau khi lớp kết thúc buổi cuối) — bấm <b>Đã gỡ</b> sau khi gỡ. Tick ✓ sau khi đã gỡ xong — trạng thái đồng bộ cho mọi giáo viên. Mốc đã tick sẽ <b>tự ẩn sau 24 giờ</b> (mốc chưa tick luôn hiển thị). App chỉ nhắc, <b>không tự xóa</b> dữ liệu.</div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:6px">
+        <select id="hh-f-gv" class="ds-select" onchange="hhFilterChange()">
+          <option value="">Tất cả GV</option>
+          <option value="Cô Vy">Cô Vy</option>
+          <option value="Thầy Khuê">Thầy Khuê</option>
+          <option value="Thầy Nam">Thầy Nam</option>
+          <option value="Khác">Khác</option>
+        </select>
+        <select id="hh-f-loai" class="ds-select" onchange="hhFilterChange()">
+          <option value="">Tất cả loại lớp</option>
+          <option value="starter">Starter</option>
+          <option value="basic">Basic</option>
+          <option value="complete">Complete</option>
+          <option value="other">Khác</option>
+          <option value="phatam">Phát Âm IPA</option>
+          <option value="giaotiep">Giao Tiếp</option>
+          <option value="preielts">Pre-IELTS</option>
+          <option value="ielts">IELTS 6.5</option>
+        </select>
+        <button class="btn sm" id="hh-f-clear" style="display:none" onclick="hhFilterClear()"><i data-ic="x"></i>Bỏ lọc</button>
+      </div>
       <div id="hethan-list"><div class="loading">Đang tải dữ liệu...</div></div>
     </div>
   </div>
@@ -1944,6 +1965,22 @@ let videoKeep=null,videoOrder=null; // buổi video + thứ tự lớp chốt l�
 let hethanOrder=null; // thứ tự hiển thị — chốt lúc mở tab, giữ nguyên khi thao tác
 let hethanShowHidden=false; // đang mở xem các mốc đã ẩn?
 window.toggleHetHanHidden=function(){hethanShowHidden=!hethanShowHidden;renderHetHan();};
+// Bộ lọc theo giáo viên / loại lớp (chỉ ảnh hưởng hiển thị, badge tab vẫn đếm tất cả)
+function hhFilter(){
+  const g=document.getElementById('hh-f-gv'),t=document.getElementById('hh-f-loai');
+  return{gv:g?g.value:'',loai:t?t.value:''};
+}
+function hhMatch(l,f){
+  if(f.gv&&(f.gv==='Khác'?GV_CLASS[l.gv]:l.gv!==f.gv))return false;
+  if(f.loai&&l.loai!==f.loai)return false;
+  return true;
+}
+window.hhFilterChange=function(){hethanOrder=null;videoOrder=null;renderHetHan();};
+window.hhFilterClear=function(){
+  document.getElementById('hh-f-gv').value='';
+  document.getElementById('hh-f-loai').value='';
+  hhFilterChange();
+};
 function mocPill(m){
   const d=mocDaysLeft(m);
   if(m.done)return'<span class="hh-pill handled">✓ Đã xử lý</span>';
@@ -1961,14 +1998,18 @@ function mocCls(m){
 }
 function renderHetHan(){
   const el=document.getElementById('hethan-list');if(!el)return;
+  const hf=hhFilter();
+  const hfOn=!!(hf.gv||hf.loai);
+  const hfc=document.getElementById('hh-f-clear');if(hfc)hfc.style.display=hfOn?'inline-flex':'none';
   // Phần 1: Xóa Video B.G từng buổi (nhóm theo lớp). Buổi vừa bấm "Đã gỡ" vẫn nằm yên tại chỗ (có nút hoàn tác)
   // tới khi rời tab, và thứ tự lớp được chốt lúc mở tab → thao tác nhiều buổi liên tiếp không bị nhảy vị trí.
-  const vids=videoPending();
+  const vidsAll=videoPending();
   if(!videoKeep)videoKeep=new Set();
-  vids.forEach(v=>videoKeep.add(v.lop.id+'_'+v.i));
+  vidsAll.forEach(v=>videoKeep.add(v.lop.id+'_'+v.i));
+  const vids=vidsAll.filter(v=>hhMatch(v.lop,hf));
   const tNow=today0();
   const vShow=[];
-  lops.forEach(l=>l.ngayHoc.forEach((bb,i)=>{if(!bb.vang&&videoKeep.has(l.id+'_'+i))vShow.push(videoItem(l,i,tNow));}));
+  lops.filter(l=>hhMatch(l,hf)).forEach(l=>l.ngayHoc.forEach((bb,i)=>{if(!bb.vang&&videoKeep.has(l.id+'_'+i))vShow.push(videoItem(l,i,tNow));}));
   vShow.sort((a,b)=>a.han-b.han||(a.lop.gioBD||'').localeCompare(b.lop.gioBD||''));
   const groups=[];
   vShow.forEach(v=>{let g=groups.find(x=>x.lop.id===v.lop.id);if(!g){g={lop:v.lop,items:[]};groups.push(g);}g.items.push(v);});
@@ -1976,7 +2017,7 @@ function renderHetHan(){
   else groups.forEach(g=>{if(!videoOrder.includes(g.lop.id))videoOrder.push(g.lop.id);});
   groups.sort((a,b)=>videoOrder.indexOf(a.lop.id)-videoOrder.indexOf(b.lop.id));
   let vHtml='<div class="hh-sec-title" style="margin-top:0">'+ic('video')+'Xóa Video B.G ('+vids.length+' buổi cần gỡ)</div>';
-  if(groups.length===0)vHtml+='<div class="hh-empty" style="padding:14px">'+ic('check-circle')+'Không có video buổi học nào cần gỡ.</div>';
+  if(groups.length===0)vHtml+='<div class="hh-empty" style="padding:14px">'+ic('check-circle')+'Không có video buổi học nào cần gỡ'+(hfOn?' (theo bộ lọc)':'')+'.</div>';
   else{
     vHtml+=groups.map(g=>{
       const l=g.lop;
@@ -1996,9 +2037,9 @@ function renderHetHan(){
     }).join('');
   }
   // Phần 2: các mốc gỡ nội dung của lớp đã kết thúc
-  const ended=lops.filter(isEnded);
+  const ended=lops.filter(l=>isEnded(l)&&hhMatch(l,hf));
   if(ended.length===0){
-    el.innerHTML=vHtml+'<div class="hh-empty">'+ic('info')+'Chưa có lớp nào kết thúc — chưa có mốc gỡ nội dung nào.</div>';
+    el.innerHTML=vHtml+'<div class="hh-empty">'+ic('info')+(hfOn?'Không có lớp đã kết thúc nào khớp bộ lọc.':'Chưa có lớp nào kết thúc — chưa có mốc gỡ nội dung nào.')+'</div>';
     return;
   }
   const rows=ended.map(l=>{
