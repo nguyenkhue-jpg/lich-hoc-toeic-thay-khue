@@ -443,6 +443,29 @@ svg.i{width:18px;height:18px;flex:none;stroke:currentColor;fill:none;stroke-widt
 .lc-tbl tr.nghi td{background:#f7f9fc;color:var(--dim)}
 .lc-tbl tr.lehoc td{background:#fff6ee}
 .lc-tbl tr.last td{background:var(--gold-bg);font-weight:700}
+/* LỊCH MỞ BÀI TEST (lớp Complete) */
+.tk-btns{display:flex;gap:8px;flex-wrap:wrap;margin:0 0 10px}
+.tk-wrap{border:1px solid var(--line);border-radius:var(--r-sm);overflow-x:auto;background:#fff}
+.tk-tbl{width:100%;border-collapse:collapse;font-size:13.5px;min-width:640px}
+.tk-tbl th{text-align:left;padding:9px 12px;border-bottom:1px solid var(--line);font-size:13px;font-weight:700;color:var(--muted);background:var(--bg2);white-space:nowrap}
+.tk-tbl td{padding:9px 12px;border-bottom:1px solid #edf1f8;vertical-align:middle}
+.tk-tbl tr:last-child td{border-bottom:none}
+.tk-tbl td.giao{color:var(--text2);white-space:nowrap}
+.tk-tbl td.ten{font-weight:600;color:var(--text);overflow-wrap:anywhere}
+.tk-tbl .lc-num{margin-right:8px;vertical-align:middle}
+.tk-tbl tr.dich td{background:#fff6ee}
+.tk-dich{display:inline-block;margin-left:6px;font-family:var(--body,inherit);font-size:12px;font-weight:700;color:#b6500c;background:#ffe9d6;border:1px solid #f8c79e;border-radius:7px;padding:0 6px;white-space:nowrap}
+.tk-note{font-size:13px;color:var(--muted);line-height:1.65;margin-top:10px}
+.tk-cell{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.tk-tx{min-width:0;flex:1;overflow-wrap:anywhere}
+.tk-tbl td.mo .v{display:block;font-family:var(--mono);font-weight:700;font-size:13.5px;color:var(--text);white-space:nowrap}
+.tk-tbl td.mo small{display:block;font-size:12.5px;font-weight:500;color:var(--muted);margin-top:1px}
+.tk-flash{animation:tkflash 1.3s ease-out}
+@keyframes tkflash{0%,55%{background:#c9ecd5}100%{background:transparent}}
+.tk-copied{border:1px solid #b5e2c4;background:var(--green-bg);border-radius:var(--r-sm);padding:10px 12px;margin:0 0 10px;font-size:13px;color:var(--green);font-weight:600}
+.tk-copied .h{display:flex;align-items:center;gap:6px}
+.tk-copied pre{margin:8px 0 0;max-height:180px;overflow:auto;background:#fff;border:1px solid #cfe8d8;border-radius:8px;padding:8px 10px;font-family:var(--mono);font-size:12.5px;font-weight:500;color:var(--text);white-space:pre-wrap;overflow-wrap:anywhere}
+
 
 /* TOAST */
 .toast{position:fixed;bottom:24px;left:50%;transform:translate(-50%,8px);background:#121a33;color:#fff;padding:11px 18px;border-radius:14px;font-size:14px;font-weight:600;z-index:9999;opacity:0;transition:opacity .2s,transform .2s;pointer-events:none;display:flex;align-items:center;gap:12px;max-width:min(560px,92vw);box-shadow:0 10px 30px rgba(18,26,51,.3);line-height:1.45}
@@ -1040,6 +1063,17 @@ svg.i{width:18px;height:18px;flex:none;stroke:currentColor;fill:none;stroke-widt
   </div>
 </div>
 
+<!-- MODAL: LỊCH MỞ BÀI TEST (lớp Complete đã khai giảng) -->
+<div class="modal-ov" id="modal-tk">
+  <div class="modal-card" style="max-width:860px">
+    <div class="modal-title" id="tk-title">Lịch mở bài TEST</div>
+    <div id="tk-body"></div>
+    <div class="row-btns" style="margin-top:14px">
+      <button class="btn" onclick="tkDongLop()">Đóng</button>
+    </div>
+  </div>
+</div>
+
 <!-- MODAL: SỬA BUỔI HỌC -->
 <div class="modal-ov" id="modal-buoi">
   <div class="modal-card">
@@ -1111,6 +1145,7 @@ svg.i{width:18px;height:18px;flex:none;stroke:currentColor;fill:none;stroke-widt
     eye:'<path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/>',
     'eye-off':'<path d="M3 3l18 18M10.6 5.1A10.7 10.7 0 0 1 12 5c6.4 0 10 7 10 7a17.6 17.6 0 0 1-2.9 3.8M6.6 6.6C3.8 8.4 2 12 2 12s3.6 7 10 7a9.7 9.7 0 0 0 5.4-1.6M9.9 9.9a3 3 0 0 0 4.2 4.2"/>',
     copy:'<rect x="8" y="8" width="13" height="13" rx="2"/><path d="M16 8V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h3"/>',
+    download:'<path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="M7 10l5 5 5-5"/><path d="M12 15V3"/>',
     'arrow-right':'<path d="M5 12h14M13 6l6 6-6 6"/>',
     key:'<circle cx="8" cy="15" r="4"/><path d="M10.8 12.2L20 3M16.5 6.5l3 3M14 9l2 2"/>',
     lock:'<rect x="4.5" y="10.5" width="15" height="10.5" rx="2"/><path d="M8 10.5V7a4 4 0 0 1 8 0v3.5"/>',
@@ -1604,6 +1639,7 @@ async function saveLop(lop){
 function renderAllVisible(){
   renderToday();
   renderDS();
+  tkLamMoiLop();
   updateHetHanBadge();
   if(isActive('dukien'))renderDuKien();
   if(isActive('hethan'))renderHetHan();
@@ -2228,6 +2264,7 @@ function lopHTML(lop){
       '<div class="buoi-scroll">'+buoiRows+'</div>'+
       '<div class="lop-foot">'+
         '<button class="btn sm" onclick="openEdit(\''+lop.id+'\')">'+ic('edit')+'Sửa</button>'+
+        (lop.loai==='complete'?'<button class="btn sm" onclick="tkMoLop(\''+lop.id+'\')" title="Xem lịch mở 26 bài TEST của lớp này (tính theo buổi học thật, buổi vắng đã dời)">'+ic('calendar')+'Lịch bài TEST</button>':'')+
         '<button class="btn sm" onclick="cloneLop(\''+lop.id+'\')" title="Sao chép thông tin để tạo lớp mới">'+ic('copy')+'Nhân bản</button>'+
         '<button class="btn sm success" onclick="buBuoi(\''+lop.id+'\')">'+ic('plus')+'Buổi bù</button>'+
         '<button class="btn sm del" onclick="xoaLop(\''+lop.id+'\')">'+ic('trash')+'Xóa lớp</button>'+
@@ -2855,6 +2892,8 @@ let leRieng=(()=>{const v=lsGet('tk_le_rieng',[]);return Array.isArray(v)?v.filt
 let lcOpt=(()=>{const v=objLs('tk_lc_opt');const n=parseInt(v.n),g=parseInt(v.gap);return{n:n>=1&&n<=5?n:3,gap:g>=0&&g<=90?g:0};})();
 let lcSrc=null;         // null = lớp đang nhập ở form; id = lớp dự kiến đã lưu (nút Xem lịch)
 let lcLast=null;        // kết quả tính gần nhất (dùng cho nút Lưu lớp kế tiếp)
+let tkLopId=null;      // id lớp đang mở trong cửa sổ Lịch bài TEST
+const tkSt={lc:null,lop:null}; // lịch bài TEST vừa vẽ: lc = card Lịch chi tiết, lop = cửa sổ của lớp đã khai giảng ({ca,rows,ngay})
 let lcLeEdit=null;      // id lễ đang mở sửa khoảng ngày
 let lcLuuBusy=false;    // chặn bấm 2 lần khi đang lưu lớp kế tiếp
 const lcTblOpen=new Set([0]); // bảng chi tiết đang mở (mặc định: lớp đang xếp)
@@ -2994,6 +3033,7 @@ function lcTinhToan(src){
 function lcRender(){
   const body=document.getElementById('lc-body'),srcEl=document.getElementById('lc-src');
   if(!body||!srcEl)return;
+  tkSt.lc=null;
   const src=lcLayNguon();
   srcEl.innerHTML=(lcSrc&&src)
     ?ic('eye')+'<span>Đang xem lớp dự kiến đã lưu: <b>'+esc(src.ten)+'</b></span> <button class="btn sm" onclick="lcVeForm()">'+ic('undo')+'Xem lớp đang nhập ở form</button>'
@@ -3006,8 +3046,228 @@ function lcRender(){
   const r=lcTinhToan(src);
   if(!r){lcLast=null;body.innerHTML='<div class="lc-hint">'+ic('alert')+'<span>Không xếp đủ '+src.sobuoi+' buổi với thứ học đã chọn — kiểm tra lại thông tin.</span></div>';return;}
   lcLast=r;
-  body.innerHTML=lcHtmlTomTat(r)+lcHtmlDongThoiGian(r)+lcHtmlLe(r)+lcHtmlLichThang(r)+lcHtmlBang(r);
+  body.innerHTML=lcHtmlTomTat(r)+tkHtmlLichTest(r)+lcHtmlDongThoiGian(r)+lcHtmlLe(r)+lcHtmlLichThang(r)+lcHtmlBang(r);
 }
+/* ===== LỊCH MỞ BÀI TEST — lớp TOEIC Complete =====
+   Cổng từ skill "lich-mo-test-complete" (cùng quy tắc, cùng bảng buổi giao bài):
+   - Mọi TEST mở 23:00. TEST 01: ca tối mở ở buổi thứ 3; ca T7+CN mở sau khai giảng 5 ngày.
+   - TEST 02–16: mở sau ngày giao từ vựng ít nhất 2 ngày; TEST 17–26: ít nhất 3 ngày.
+   - Hai TEST liên tiếp cách nhau ít nhất 2 ngày.
+   Ngày học lấy từ cùng bộ ngày lễ/tick Nghỉ của "Lịch chi tiết": buổi rơi vào ngày nghỉ bị bỏ → TEST tự lùi theo.
+   Khối PURE bên dưới không dùng DOM/biến toàn cục của app (để đối chiếu với script Python của skill). */
+/*TK-PURE-START*/
+const TK_CA={T246:{buoi:27},T357:{buoi:27},T7CN:{buoi:22}};
+const TK_TV_TOI=[1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26];
+const TK_TV_T7CN=[1,2,2,3,4,4,5,6,6,7,8,8,9,10,10,11,12,13,14,15,16,17,18,19,20,21];
+const TK_LS_TOI=[1,3,4,5,6,10,11,13,14,15,16];
+const TK_LS_T7CN=[1,2,4,4,5,6,7,10,12,13,14];
+function tkNhanDienCa(thuHoc){ // thuHoc theo Date.getDay(): 0=CN, 1=T2 … 6=T7
+  const k=[...thuHoc].sort((a,b)=>a-b).join(',');
+  return k==='1,3,5'?'T246':k==='2,4,6'?'T357':k==='0,6'?'T7CN':null;
+}
+function tkTenBai(n){
+  if(n===1)return 'TEST 01 | Bắt Buộc (Từ Vựng Nhập Môn)';
+  if(n<=15)return 'TEST '+String(n).padStart(2,'0')+' | Bắt Buộc (Day '+(2*n-3)+'–'+(2*n-2)+')';
+  return 'TEST '+n+' | Bắt Buộc';
+}
+function tkCong(d,n){return new Date(d.getFullYear(),d.getMonth(),d.getDate()+n);}
+function tkNgayYmd(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');}
+// ses = danh sách ngày học (Date, đã bỏ ngày nghỉ) của lớp theo thứ tự; trả về 26 dòng hoặc null nếu thiếu buổi
+function tkTinhLich(ca,ses){
+  if(!TK_CA[ca]||!ses||ses.length<TK_CA[ca].buoi)return null;
+  const t7=ca==='T7CN',tv=t7?TK_TV_T7CN:TK_TV_TOI,ls=t7?TK_LS_T7CN:TK_LS_TOI;
+  const out=[];let prev=null;
+  for(let n=1;n<=26;n++){
+    let a=tv[n-1];if(n>=16)a=Math.max(a,ls[n-16]);
+    const giao=ses[a-1];
+    let mo;
+    if(n===1)mo=t7?tkCong(ses[0],5):ses[2];
+    else{mo=tkCong(giao,n>=17?3:2);if(Math.round((mo-prev)/86400000)<2)mo=tkCong(prev,2);}
+    prev=mo;
+    out.push({n,ten:tkTenBai(n),buoi:a,giao,mo,moStr:tkNgayYmd(mo)+'T23:00'});
+  }
+  return out;
+}
+/*TK-PURE-END*/
+/*TK-XLSX-START*/
+// Tạo file .xlsx tối thiểu ngay trên trình duyệt (không dùng thư viện): zip không nén + XML của Excel; ô lưu dạng chuỗi nên cột thời gian giữ nguyên 2026-11-17T23:00
+function tkCrc32(u8){
+  if(!tkCrc32.t){const t=new Uint32Array(256);for(let n=0;n<256;n++){let c=n;for(let k=0;k<8;k++)c=c&1?0xEDB88320^(c>>>1):c>>>1;t[n]=c>>>0;}tkCrc32.t=t;}
+  const t=tkCrc32.t;let crc=0xFFFFFFFF;
+  for(let i=0;i<u8.length;i++)crc=t[(crc^u8[i])&255]^(crc>>>8);
+  return (crc^0xFFFFFFFF)>>>0;
+}
+function tkZip(files){ // files: [{name,data:Uint8Array}] → Uint8Array (chỉ lưu, không nén)
+  const enc=new TextEncoder(),chunks=[],cen=[];let off=0;
+  files.forEach(f=>{
+    const nm=enc.encode(f.name),crc=tkCrc32(f.data),sz=f.data.length;
+    const lh=new DataView(new ArrayBuffer(30));
+    lh.setUint32(0,0x04034b50,true);lh.setUint16(4,20,true);lh.setUint16(6,0x0800,true);lh.setUint16(8,0,true);
+    lh.setUint16(10,0,true);lh.setUint16(12,0x21,true);lh.setUint32(14,crc,true);lh.setUint32(18,sz,true);lh.setUint32(22,sz,true);
+    lh.setUint16(26,nm.length,true);lh.setUint16(28,0,true);
+    chunks.push(new Uint8Array(lh.buffer),nm,f.data);
+    const ch=new DataView(new ArrayBuffer(46));
+    ch.setUint32(0,0x02014b50,true);ch.setUint16(4,20,true);ch.setUint16(6,20,true);ch.setUint16(8,0x0800,true);ch.setUint16(10,0,true);
+    ch.setUint16(12,0,true);ch.setUint16(14,0x21,true);ch.setUint32(16,crc,true);ch.setUint32(20,sz,true);ch.setUint32(24,sz,true);
+    ch.setUint16(28,nm.length,true);ch.setUint16(30,0,true);ch.setUint16(32,0,true);ch.setUint16(34,0,true);ch.setUint16(36,0,true);
+    ch.setUint32(38,0,true);ch.setUint32(42,off,true);
+    cen.push(new Uint8Array(ch.buffer),nm);
+    off+=30+nm.length+sz;
+  });
+  let cenLen=0;cen.forEach(c=>{cenLen+=c.length;});
+  const eo=new DataView(new ArrayBuffer(22));
+  eo.setUint32(0,0x06054b50,true);eo.setUint16(8,files.length,true);eo.setUint16(10,files.length,true);eo.setUint32(12,cenLen,true);eo.setUint32(16,off,true);
+  const all=chunks.concat(cen,[new Uint8Array(eo.buffer)]);
+  let total=0;all.forEach(c=>{total+=c.length;});
+  const out=new Uint8Array(total);let p=0;all.forEach(c=>{out.set(c,p);p+=c.length;});
+  return out;
+}
+function tkXlsxBytes(header,rows){ // header: [A1,B1]; rows: [[A,B],…] → Uint8Array của file .xlsx (sheet "Lich")
+  const enc=new TextEncoder();
+  const x=t=>String(t).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  const cell=(ref,t)=>'<c r="'+ref+'" t="inlineStr"><is><t>'+x(t)+'</t></is></c>';
+  const all=[header].concat(rows);
+  const sheet='<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\n<worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"><cols><col min="1" max="1" width="58" customWidth="1"/><col min="2" max="2" width="22" customWidth="1"/></cols><sheetData>'+
+    all.map((r,i)=>'<row r="'+(i+1)+'">'+cell('A'+(i+1),r[0])+cell('B'+(i+1),r[1])+'</row>').join('')+'</sheetData></worksheet>';
+  const ns='http://schemas.openxmlformats.org/spreadsheetml/2006/main',rel='http://schemas.openxmlformats.org/officeDocument/2006/relationships';
+  const hd='<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\n';
+  const files=[
+    {name:'[Content_Types].xml',text:hd+'<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/><Override PartName="/xl/worksheets/sheet1.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/><Override PartName="/xl/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.styles+xml"/></Types>'},
+    {name:'_rels/.rels',text:hd+'<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="'+rel+'/officeDocument" Target="xl/workbook.xml"/></Relationships>'},
+    {name:'xl/workbook.xml',text:hd+'<workbook xmlns="'+ns+'" xmlns:r="'+rel+'"><sheets><sheet name="Lich" sheetId="1" r:id="rId1"/></sheets></workbook>'},
+    {name:'xl/_rels/workbook.xml.rels',text:hd+'<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="'+rel+'/worksheet" Target="worksheets/sheet1.xml"/><Relationship Id="rId2" Type="'+rel+'/styles" Target="styles.xml"/></Relationships>'},
+    {name:'xl/styles.xml',text:hd+'<styleSheet xmlns="'+ns+'"><fonts count="1"><font><sz val="11"/><name val="Calibri"/></font></fonts><fills count="2"><fill><patternFill patternType="none"/></fill><fill><patternFill patternType="gray125"/></fill></fills><borders count="1"><border><left/><right/><top/><bottom/><diagonal/></border></borders><cellStyleXfs count="1"><xf numFmtId="0" fontId="0" fillId="0" borderId="0"/></cellStyleXfs><cellXfs count="1"><xf numFmtId="0" fontId="0" fillId="0" borderId="0" xfId="0"/></cellXfs><cellStyles count="1"><cellStyle name="Normal" xfId="0" builtinId="0"/></cellStyles></styleSheet>'},
+    {name:'xl/worksheets/sheet1.xml',text:sheet}
+  ];
+  return tkZip(files.map(f=>({name:f.name,data:enc.encode(f.text)})));
+}
+/*TK-XLSX-END*/
+// Bảng + nút dùng chung cho 2 nơi: key 'lc' = card Lịch chi tiết (lớp dự kiến), key 'lop' = cửa sổ Lịch bài TEST của lớp đã khai giảng.
+// Mỗi nơi có id ô riêng (tk-<key>-…) và dữ liệu riêng (tkSt[key]) nên mở cùng lúc cũng không lẫn.
+function tkBangHTML(key,ca,rows,rows0,ngay,nghiTxt,thuNote,L){
+  tkSt[key]={ca,rows,ngay};
+  // Ô "Tên bài test" và "Thời gian mở" hiện ĐÚNG chuỗi sẽ được sao chép (giống ô trong file Excel); mỗi ô có nút sao chép riêng
+  const trs=rows.map((x,i)=>{
+    const d=Math.round((x.mo-rows0[i].mo)/86400000);
+    const so=esc(x.ten.split(' | ')[0]);
+    const nut=(kind,tt)=>'<button class="btn sm" onclick="tkCopy(\''+key+'\',\''+kind+'\','+i+')" title="'+tt+'" aria-label="'+tt+' ('+so+')">'+ic('copy')+'</button>';
+    return '<tr'+(d>0?' class="dich"':'')+'>'+
+      '<td class="ten" id="tk-'+key+'-t-'+i+'"><div class="tk-cell"><span class="tk-tx"><span class="lc-num" style="'+lcShade(L,0)+'">'+x.n+'</span>'+esc(x.ten)+'</span>'+nut('ten','Sao chép tên bài test')+'</div></td>'+
+      '<td class="mo" id="tk-'+key+'-m-'+i+'"><div class="tk-cell"><span class="tk-tx"><span class="v">'+x.moStr+'</span><small>'+lcNgay(x.mo)+(d>0?'<span class="tk-dich">dời +'+d+' ngày</span>':'')+'</small></span>'+nut('mo','Sao chép thời gian mở')+'</div></td>'+
+      '<td class="giao">Buổi '+x.buoi+' · '+DAYS[x.giao.getDay()]+' '+fmtDateShort(x.giao)+'</td></tr>';
+  }).join('');
+  return '<div class="tk-btns"><button class="btn sm prim" onclick="tkTaiExcel(\''+key+'\')">'+ic('download')+'Tải file Excel (.xlsx)</button>'+
+    '<button class="btn sm" onclick="tkCopy(\''+key+'\',\'ten\')">'+ic('copy')+'Cả cột tên bài test</button>'+
+    '<button class="btn sm" onclick="tkCopy(\''+key+'\',\'mo\')">'+ic('copy')+'Cả cột thời gian mở</button></div>'+
+    '<div class="tk-copied" id="tk-'+key+'-copied" style="display:none"></div>'+
+    '<div class="tk-wrap"><table class="tk-tbl"><thead><tr><th>Tên bài test</th><th>Thời gian mở</th><th>Giao bài (tham khảo)</th></tr></thead><tbody>'+trs+'</tbody></table></div>'+
+    '<div class="tk-note">'+nghiTxt+'<br>Hai cột đầu hiện đúng nội dung sẽ được sao chép; nút <b>Tải file Excel</b> cho file .xlsx giống file của skill (2 cột, thời gian dạng <span style="font-family:var(--mono)">2026-11-17T23:00</span>). Nếu Excel tự đổi thành ngày giờ thì đặt cột đó là Text trước khi dán.'+
+    (thuNote?'<br>'+thuNote:'')+'</div>';
+}
+// Card Lịch chi tiết (lớp dự kiến): ngày học lấy theo bảng lễ + tick Nghỉ/Vẫn học
+function tkHtmlLichTest(r){
+  tkSt.lc=null;
+  const s=r.src;
+  if(s.loai!=='complete')return '';
+  const ca=tkNhanDienCa(s.thuHoc);
+  const sec='<div class="lc-sec">Lịch mở bài TEST'+(ca?' <span class="sub">ca '+ca+' · mọi bài mở 23:00</span>':'')+'</div>';
+  if(!ca)return sec+'<div class="lc-hint">'+ic('info')+'<span>Lịch bài TEST chỉ tính cho lớp Complete học <b>T2-4-6</b>, <b>T3-5-7</b> hoặc <b>T7 + CN</b>. Thứ học đang chọn chưa khớp ca nào.</span></div>';
+  const a=parseYMD(s.ngay),buoi=TK_CA[ca].buoi;
+  const leNghi=leDanhSach(a,addDays(a,900)).filter(l=>leTick[l.id]!=='hoc'); // cùng quy ước tick với bảng lễ bên dưới
+  const kq=tinhNgayVoiLe(s.ngay,s.thuHoc,buoi,leNghi);
+  const rows=tkTinhLich(ca,kq.dates),rows0=tkTinhLich(ca,tinhNgayVoiLe(s.ngay,s.thuHoc,buoi,[]).dates);
+  if(!rows||!rows0)return sec+'<div class="lc-hint">'+ic('alert')+'<span>Không xếp đủ '+buoi+' buổi của ca '+ca+' để tính lịch bài TEST — kiểm tra lại ngày khai giảng.</span></div>';
+  const nghiTxt=kq.boQua.length?'Buổi học trùng ngày nghỉ nên bị bỏ: '+kq.boQua.map(b=>'<b>'+fmtDateShort(b.date)+'</b> ('+esc(b.le.ngan||b.le.ten)+')').join(', ')+' → các buổi sau và các bài TEST tương ứng đã dời lùi.':'Chưa có buổi nào trùng ngày nghỉ — lịch chạy liên tục.';
+  return sec+tkBangHTML('lc',ca,rows,rows0,s.ngay,nghiTxt,s.sobuoi!==buoi?'Lớp đang xếp có '+s.sobuoi+' buổi; lịch TEST luôn tính theo lộ trình chuẩn '+buoi+' buổi của ca '+ca+'.':'',r.L);
+}
+// Lớp đã khai giảng (Danh sách lớp): ngày học thật = các buổi chưa đánh dấu vắng; buổi vắng đã được app dời xuống cuối lịch
+function tkBuoiLop(lop,need){
+  const ses=(lop.ngayHoc||[]).filter(b=>!b.vang).map(b=>pd(b.date)).sort((x,y)=>x-y);
+  let them=0;
+  if(ses.length){
+    const thu=[...lop.thuHoc].sort((a,b)=>a-b);
+    let cur=new Date(ses[ses.length-1]),safe=0;
+    while(ses.length<need&&safe<3000){cur=tkCong(cur,1);safe++;if(thu.includes(cur.getDay())){ses.push(new Date(cur));them++;}}
+  }
+  return{ses,them};
+}
+function tkHtmlLichLop(lop){
+  tkSt.lop=null;
+  const ca=tkNhanDienCa(lop.thuHoc||[]);
+  if(!ca)return '<div class="lc-hint">'+ic('info')+'<span>Lịch bài TEST chỉ tính cho lớp Complete học <b>T2-4-6</b>, <b>T3-5-7</b> hoặc <b>T7 + CN</b>. Thứ học của lớp này chưa khớp ca nào.</span></div>';
+  const buoi=TK_CA[ca].buoi,kq=tkBuoiLop(lop,buoi);
+  if(!kq.ses.length)return '<div class="lc-hint">'+ic('alert')+'<span>Lớp chưa có buổi học nào để tính lịch bài TEST.</span></div>';
+  const rows=tkTinhLich(ca,kq.ses),rows0=tkTinhLich(ca,tinhNgay(lop.ngay,lop.thuHoc,buoi));
+  if(!rows||!rows0)return '<div class="lc-hint">'+ic('alert')+'<span>Không xếp đủ '+buoi+' buổi của ca '+ca+' để tính lịch bài TEST.</span></div>';
+  const vang=(lop.ngayHoc||[]).filter(b=>b.vang).map(b=>pd(b.date)).sort((x,y)=>x-y);
+  const nghiTxt=vang.length?'Buổi đã đánh dấu vắng: '+vang.map(d=>'<b>'+fmtDateShort(d)+'</b>').join(', ')+' → các buổi sau và các bài TEST tương ứng đã dời lùi (so với lịch chạy liên tục từ ngày khai giảng).':'Lớp chưa có buổi vắng — lịch chạy liên tục từ ngày khai giảng.';
+  const thuNote=kq.them?'Lịch học của lớp mới có '+(buoi-kq.them)+'/'+buoi+' buổi; '+kq.them+' buổi cuối chưa có trong lịch lớp nên đang tính tạm theo thứ học.':'';
+  return '<div class="lc-src" style="margin-bottom:10px"><span>Lớp <b>'+esc(lop.ten)+'</b> · ca '+ca+' · khai giảng <b>'+fmtDate(parseYMD(lop.ngay))+'</b> · mọi bài mở 23:00</span></div>'+
+    tkBangHTML('lop',ca,rows,rows0,lop.ngay,nghiTxt,thuNote,'complete');
+}
+window.tkMoLop=function(id){
+  const lop=lops.find(x=>x.id===id);if(!lop)return;
+  tkLopId=id;
+  document.getElementById('tk-title').textContent='Lịch mở bài TEST — '+lop.ten;
+  document.getElementById('tk-body').innerHTML=tkHtmlLichLop(lop);
+  document.getElementById('modal-tk').classList.add('show');
+};
+window.tkDongLop=function(){document.getElementById('modal-tk').classList.remove('show');tkLopId=null;tkSt.lop=null;};
+// Dữ liệu lớp đổi khi cửa sổ đang mở (vd đồng bộ Firebase) → tính lại cho khỏi dữ liệu cũ
+function tkLamMoiLop(){
+  const m=document.getElementById('modal-tk');
+  if(!m||!m.classList.contains('show')||!tkLopId)return;
+  const lop=lops.find(x=>x.id===tkLopId);
+  if(!lop){tkDongLop();return;}
+  document.getElementById('tk-body').innerHTML=tkHtmlLichLop(lop);
+}
+// Sao chép + cho thấy ngay nội dung đã sao chép (toast với 1 ô; khung "Đã sao chép" cho mọi trường hợp; ô vừa bấm nháy xanh)
+function tkHienDaChep(key,label,text,cellId){
+  const box=document.getElementById('tk-'+key+'-copied');
+  if(box){
+    box.innerHTML='<div class="h">'+ic('check',16)+'<span>Đã sao chép '+esc(label)+':</span></div><pre>'+esc(text)+'</pre>';
+    box.style.display='block';
+  }
+  if(cellId){
+    const c=document.getElementById(cellId);
+    if(c){c.classList.remove('tk-flash');void c.offsetWidth;c.classList.add('tk-flash');}
+  }
+  showToast('Đã sao chép '+label+(text.indexOf('\n')<0?': '+text:''),null,null,4500);
+}
+function tkGhiClipboard(key,text,label,cellId){
+  const ok=()=>tkHienDaChep(key,label,text,cellId);
+  const fb=()=>{ // trình duyệt không cho clipboard API (http / iframe) → cách cũ
+    const ta=document.createElement('textarea');ta.value=text;ta.setAttribute('readonly','');
+    ta.style.cssText='position:fixed;top:0;left:0;opacity:0';document.body.appendChild(ta);ta.select();
+    let done=false;try{done=document.execCommand('copy');}catch(e){}
+    ta.remove();
+    if(done)ok();else showToast('Không sao chép được — hãy bôi đen nội dung trong bảng rồi copy thủ công');
+  };
+  if(navigator.clipboard&&navigator.clipboard.writeText)navigator.clipboard.writeText(text).then(ok,fb);else fb();
+}
+window.tkTaiExcel=function(key){
+  const st=tkSt[key];if(!st)return;
+  const d=st.ngay.split('-'),ten='C1 - '+d[2]+'.'+d[1]+'.'+d[0]+'.xlsx'; // cùng tên file skill: "C1 - dd.mm.yyyy.xlsx"
+  const bytes=tkXlsxBytes(['Tên bài test','Thời gian mở'],st.rows.map(x=>[x.ten,x.moStr]));
+  const url=URL.createObjectURL(new Blob([bytes],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'}));
+  const a=document.createElement('a');a.href=url;a.download=ten;document.body.appendChild(a);a.click();a.remove();
+  setTimeout(()=>URL.revokeObjectURL(url),4000);
+  showToast('Đã tải file '+ten+' ('+st.rows.length+' dòng: Tên bài test | Thời gian mở)',null,null,4500);
+};
+// kind: 'ten' | 'mo'; i (số) = một bài, bỏ i = cả cột
+window.tkCopy=function(key,kind,i){
+  const st=tkSt[key];if(!st)return;
+  const rs=st.rows,one=typeof i==='number'?rs[i]:null;
+  let text,label,cell=null;
+  if(kind==='ten'){
+    if(one){text=one.ten;label='tên '+one.ten.split(' | ')[0];cell='tk-'+key+'-t-'+i;}
+    else{text=rs.map(x=>x.ten).join('\n');label='cột Tên bài test ('+rs.length+' dòng)';}
+  }else if(kind==='mo'){
+    if(one){text=one.moStr;label='thời gian mở '+one.ten.split(' | ')[0];cell='tk-'+key+'-m-'+i;}
+    else{text=rs.map(x=>x.moStr).join('\n');label='cột Thời gian mở ('+rs.length+' dòng)';}
+  }else return;
+  tkGhiClipboard(key,text,label,cell);
+};
 function lcHtmlTomTat(r){
   const s=r.src,c0=r.chain[0],L=r.L,col=LOAI_MAIN[L];
   // Thẻ chỉ số: nền nhạt trung tính, màu loại lớp chỉ là chấm nhỏ cạnh nhãn
