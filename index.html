@@ -446,18 +446,28 @@ svg.i{width:18px;height:18px;flex:none;stroke:currentColor;fill:none;stroke-widt
 /* LỊCH MỞ BÀI TEST (lớp Complete) */
 .tk-btns{display:flex;gap:8px;flex-wrap:wrap;margin:0 0 10px}
 .tk-wrap{border:1px solid var(--line);border-radius:var(--r-sm);overflow-x:auto;background:#fff}
-.tk-tbl{width:100%;border-collapse:collapse;font-size:13.5px;min-width:560px}
+.tk-tbl{width:100%;border-collapse:collapse;font-size:13.5px;min-width:640px}
 .tk-tbl th{text-align:left;padding:9px 12px;border-bottom:1px solid var(--line);font-size:13px;font-weight:700;color:var(--muted);background:var(--bg2);white-space:nowrap}
 .tk-tbl td{padding:9px 12px;border-bottom:1px solid #edf1f8;vertical-align:middle}
 .tk-tbl tr:last-child td{border-bottom:none}
-.tk-tbl td.mo{font-family:var(--mono);white-space:nowrap;font-weight:600;color:var(--text)}
 .tk-tbl td.giao{color:var(--text2);white-space:nowrap}
 .tk-tbl td.ten{font-weight:600;color:var(--text);overflow-wrap:anywhere}
-.tk-tbl td.cp{width:1%;text-align:right}
 .tk-tbl .lc-num{margin-right:8px;vertical-align:middle}
 .tk-tbl tr.dich td{background:#fff6ee}
 .tk-dich{display:inline-block;margin-left:6px;font-family:var(--body,inherit);font-size:12px;font-weight:700;color:#b6500c;background:#ffe9d6;border:1px solid #f8c79e;border-radius:7px;padding:0 6px;white-space:nowrap}
 .tk-note{font-size:13px;color:var(--muted);line-height:1.65;margin-top:10px}
+.tk-cell{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.tk-tx{min-width:0;flex:1;overflow-wrap:anywhere}
+.tk-tbl td.mo .v{display:block;font-family:var(--mono);font-weight:700;font-size:13.5px;color:var(--text);white-space:nowrap}
+.tk-tbl td.mo small{display:block;font-size:12.5px;font-weight:500;color:var(--muted);margin-top:1px}
+.tk-flash{animation:tkflash 1.3s ease-out}
+@keyframes tkflash{0%,55%{background:#c9ecd5}100%{background:transparent}}
+.tk-copied{border:1px solid #b5e2c4;background:var(--green-bg);border-radius:var(--r-sm);padding:10px 12px;margin:0 0 10px;font-size:13px;color:var(--green);font-weight:600}
+.tk-copied .h{display:flex;align-items:center;gap:6px}
+.tk-copied pre,.tk-pvw{margin:8px 0 0;max-height:180px;overflow:auto;background:#fff;border:1px solid #cfe8d8;border-radius:8px;padding:8px 10px;font-family:var(--mono);font-size:12.5px;font-weight:500;color:var(--text);white-space:pre-wrap;overflow-wrap:anywhere}
+.tk-pv{border-collapse:collapse;width:100%}
+.tk-pv td{padding:2px 14px 2px 0;vertical-align:top;white-space:nowrap}
+.tk-pv td+td{padding-right:0}
 
 /* TOAST */
 .toast{position:fixed;bottom:24px;left:50%;transform:translate(-50%,8px);background:#121a33;color:#fff;padding:11px 18px;border-radius:14px;font-size:14px;font-weight:600;z-index:9999;opacity:0;transition:opacity .2s,transform .2s;pointer-events:none;display:flex;align-items:center;gap:12px;max-width:min(560px,92vw);box-shadow:0 10px 30px rgba(18,26,51,.3);line-height:1.45}
@@ -3079,41 +3089,69 @@ function tkHtmlLichTest(r){
   const rows=tkTinhLich(ca,kq.dates),rows0=tkTinhLich(ca,tinhNgayVoiLe(s.ngay,s.thuHoc,buoi,[]).dates);
   if(!rows||!rows0)return sec+'<div class="lc-hint">'+ic('alert')+'<span>Không xếp đủ '+buoi+' buổi của ca '+ca+' để tính lịch bài TEST — kiểm tra lại ngày khai giảng.</span></div>';
   tkLast={ca,rows};
+  // Ô "Tên bài test" và "Thời gian mở" hiện ĐÚNG chuỗi sẽ được sao chép (giống ô trong file Excel); mỗi ô có nút sao chép riêng
   const trs=rows.map((x,i)=>{
     const d=Math.round((x.mo-rows0[i].mo)/86400000);
-    return '<tr'+(d>0?' class="dich"':'')+'><td class="ten"><span class="lc-num" style="'+lcShade(r.L,0)+'">'+x.n+'</span>'+esc(x.ten)+'</td>'+
-      '<td class="giao">Buổi '+x.buoi+' · '+DAYS[x.giao.getDay()]+' '+fmtDateShort(x.giao)+'</td>'+
-      '<td class="mo">'+lcNgay(x.mo)+' · 23:00'+(d>0?'<span class="tk-dich">dời +'+d+' ngày</span>':'')+'</td>'+
-      '<td class="cp"><button class="btn sm" onclick="tkCopy(\'row\','+i+')" title="Sao chép tên + thời gian mở của bài này" aria-label="Sao chép '+esc(x.ten.split(' | ')[0])+'">'+ic('copy')+'</button></td></tr>';
+    const so=esc(x.ten.split(' | ')[0]);
+    const nut=(kind,tt)=>'<button class="btn sm" onclick="tkCopy(\''+kind+'\','+i+')" title="'+tt+'" aria-label="'+tt+' ('+so+')">'+ic('copy')+'</button>';
+    return '<tr'+(d>0?' class="dich"':'')+'>'+
+      '<td class="ten" id="tk-t-'+i+'"><div class="tk-cell"><span class="tk-tx"><span class="lc-num" style="'+lcShade(r.L,0)+'">'+x.n+'</span>'+esc(x.ten)+'</span>'+nut('ten','Sao chép tên bài test')+'</div></td>'+
+      '<td class="mo" id="tk-m-'+i+'"><div class="tk-cell"><span class="tk-tx"><span class="v">'+x.moStr+'</span><small>'+lcNgay(x.mo)+(d>0?'<span class="tk-dich">dời +'+d+' ngày</span>':'')+'</small></span>'+nut('mo','Sao chép thời gian mở')+'</div></td>'+
+      '<td class="giao">Buổi '+x.buoi+' · '+DAYS[x.giao.getDay()]+' '+fmtDateShort(x.giao)+'</td></tr>';
   }).join('');
   const nghiTxt=kq.boQua.length?'Buổi học trùng ngày nghỉ nên bị bỏ: '+kq.boQua.map(b=>'<b>'+fmtDateShort(b.date)+'</b> ('+esc(b.le.ngan||b.le.ten)+')').join(', ')+' → các buổi sau và các bài TEST tương ứng đã dời lùi.':'Chưa có buổi nào trùng ngày nghỉ — lịch chạy liên tục.';
   return sec+
-    '<div class="tk-btns"><button class="btn sm prim" onclick="tkCopy(\'all\')">'+ic('copy')+'Sao chép cả bảng</button>'+
-    '<button class="btn sm" onclick="tkCopy(\'ten\')">'+ic('copy')+'Chỉ tên bài test</button>'+
-    '<button class="btn sm" onclick="tkCopy(\'mo\')">'+ic('copy')+'Chỉ thời gian mở</button></div>'+
-    '<div class="tk-wrap"><table class="tk-tbl"><thead><tr><th>Tên bài test</th><th>Giao bài</th><th>Thời gian mở</th><th></th></tr></thead><tbody>'+trs+'</tbody></table></div>'+
-    '<div class="tk-note">'+nghiTxt+'<br>Sao chép theo đúng dạng file Excel của skill (vd <span style="font-family:var(--mono)">2026-11-17T23:00</span>), dán vào Excel được 2 cột; nếu Excel tự đổi thành ngày giờ thì đặt cột đó là Text trước khi dán.'+
+    '<div class="tk-btns"><button class="btn sm prim" onclick="tkCopy(\'all\')">'+ic('copy')+'Sao chép cả bảng (2 cột)</button>'+
+    '<button class="btn sm" onclick="tkCopy(\'ten\')">'+ic('copy')+'Cả cột tên bài test</button>'+
+    '<button class="btn sm" onclick="tkCopy(\'mo\')">'+ic('copy')+'Cả cột thời gian mở</button></div>'+
+    '<div class="tk-copied" id="tk-copied" style="display:none"></div>'+
+    '<div class="tk-wrap"><table class="tk-tbl"><thead><tr><th>Tên bài test</th><th>Thời gian mở</th><th>Giao bài (tham khảo)</th></tr></thead><tbody>'+trs+'</tbody></table></div>'+
+    '<div class="tk-note">'+nghiTxt+'<br>Hai cột đầu hiện đúng nội dung sẽ được sao chép, giống file Excel của skill (thời gian dạng <span style="font-family:var(--mono)">2026-11-17T23:00</span>). Nếu Excel tự đổi thành ngày giờ thì đặt cột đó là Text trước khi dán.'+
     (s.sobuoi!==buoi?'<br>Lớp đang xếp có '+s.sobuoi+' buổi; lịch TEST luôn tính theo lộ trình chuẩn '+buoi+' buổi của ca '+ca+'.':'')+'</div>';
 }
-function tkGhiClipboard(text,okMsg){
-  const ok=()=>showToast(okMsg);
+// Sao chép + cho thấy ngay nội dung đã sao chép (toast với 1 ô; khung "Đã sao chép" cho mọi trường hợp; ô vừa bấm nháy xanh)
+function tkHienDaChep(label,text,kind,cellId){
+  const box=document.getElementById('tk-copied');
+  if(box){
+    const body=kind==='all'
+      ?'<div class="tk-pvw"><table class="tk-pv"><tbody>'+text.split('\n').map(l=>{const p=l.split('\t');return '<tr><td>'+esc(p[0])+'</td><td>'+esc(p[1])+'</td></tr>';}).join('')+'</tbody></table></div>'
+      :'<pre>'+esc(text)+'</pre>';
+    box.innerHTML='<div class="h">'+ic('check',16)+'<span>Đã sao chép '+esc(label)+':</span></div>'+body;
+    box.style.display='block';
+  }
+  if(cellId){
+    const c=document.getElementById(cellId);
+    if(c){c.classList.remove('tk-flash');void c.offsetWidth;c.classList.add('tk-flash');}
+  }
+  showToast('Đã sao chép '+label+(text.indexOf('\n')<0?': '+text:''),null,null,4500);
+}
+function tkGhiClipboard(text,label,kind,cellId){
+  const ok=()=>tkHienDaChep(label,text,kind,cellId);
   const fb=()=>{ // trình duyệt không cho clipboard API (http / iframe) → cách cũ
     const ta=document.createElement('textarea');ta.value=text;ta.setAttribute('readonly','');
     ta.style.cssText='position:fixed;top:0;left:0;opacity:0';document.body.appendChild(ta);ta.select();
     let done=false;try{done=document.execCommand('copy');}catch(e){}
     ta.remove();
-    if(done)ok();else showToast('Không sao chép được — hãy bôi đen bảng rồi copy thủ công');
+    if(done)ok();else showToast('Không sao chép được — hãy bôi đen nội dung trong bảng rồi copy thủ công');
   };
   if(navigator.clipboard&&navigator.clipboard.writeText)navigator.clipboard.writeText(text).then(ok,fb);else fb();
 }
-window.tkCopy=function(mode,i){
+// kind: 'ten' | 'mo' | 'all'; i (số) = một bài, bỏ i = cả cột / cả bảng
+window.tkCopy=function(kind,i){
   if(!tkLast)return;
-  const rs=tkLast.rows;let text,msg;
-  if(mode==='row'){const x=rs[i];if(!x)return;text=x.ten+'\t'+x.moStr;msg='Đã sao chép '+x.ten.split(' | ')[0];}
-  else if(mode==='ten'){text=rs.map(x=>x.ten).join('\n');msg='Đã sao chép 26 tên bài test';}
-  else if(mode==='mo'){text=rs.map(x=>x.moStr).join('\n');msg='Đã sao chép 26 thời gian mở';}
-  else{text=rs.map(x=>x.ten+'\t'+x.moStr).join('\n');msg='Đã sao chép cả bảng (26 dòng) — dán vào Excel được 2 cột';}
-  tkGhiClipboard(text,msg);
+  const rs=tkLast.rows,one=typeof i==='number'?rs[i]:null;
+  let text,label,cell=null;
+  if(kind==='ten'){
+    if(one){text=one.ten;label='tên '+one.ten.split(' | ')[0];cell='tk-t-'+i;}
+    else{text=rs.map(x=>x.ten).join('\n');label='cột Tên bài test ('+rs.length+' dòng)';}
+  }else if(kind==='mo'){
+    if(one){text=one.moStr;label='thời gian mở '+one.ten.split(' | ')[0];cell='tk-m-'+i;}
+    else{text=rs.map(x=>x.moStr).join('\n');label='cột Thời gian mở ('+rs.length+' dòng)';}
+  }else{
+    kind='all';
+    text=rs.map(x=>x.ten+'\t'+x.moStr).join('\n');label='cả bảng — 2 cột Tên bài test | Thời gian mở ('+rs.length+' dòng)';
+  }
+  tkGhiClipboard(text,label,kind,cell);
 };
 function lcHtmlTomTat(r){
   const s=r.src,c0=r.chain[0],L=r.L,col=LOAI_MAIN[L];
